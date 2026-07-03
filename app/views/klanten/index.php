@@ -29,7 +29,7 @@ if (!function_exists('klantUrl')) {
         align-items:flex-end;
         justify-content:flex-end;
         gap:.5rem;
-        min-height:76px;
+        flex-wrap:wrap;
     }
     .kl-filter-grp { display:flex; flex-direction:column; gap:.18rem; }
     .kl-filter-grp label { font-size:.77rem; font-weight:600; color:#333; }
@@ -40,6 +40,7 @@ if (!function_exists('klantUrl')) {
         font-size:.84rem;
         color:#333;
         width:210px;
+        max-width:100%;
         background:#fff;
     }
     .kl-input:focus { outline:none; border-color:#c0392b; }
@@ -78,10 +79,11 @@ if (!function_exists('klantUrl')) {
     .kl-pagination {
         display:flex; justify-content:center; align-items:center;
         gap:.22rem; padding:.55rem 1rem; border-bottom:1px solid #eee;
+        flex-wrap:wrap;
     }
     .kl-pagination a, .kl-pagination span {
         display:inline-flex; align-items:center; justify-content:center;
-        min-width:27px; height:27px; padding:0 .35rem;
+        min-width:32px; height:32px; padding:0 .4rem;
         border:1px solid #ccc; border-radius:.22rem;
         font-size:.81rem; text-decoration:none; color:#444;
         background:#fff; line-height:1;
@@ -90,8 +92,11 @@ if (!function_exists('klantUrl')) {
     .kl-pagination .pg-active { background:#c0392b; color:#fff; border-color:#c0392b; font-weight:700; }
     .kl-pagination .pg-disabled { color:#bbb; cursor:default; background:#fafafa; }
 
+    /* ── Tabel wrapper: horizontaal scrollen op kleine schermen ── */
+    .kl-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
     /* ── Tabel ── */
-    .kl-table { width:100%; border-collapse:collapse; }
+    .kl-table { width:100%; border-collapse:collapse; min-width:600px; }
     .kl-table thead tr { background:#c0392b; }
     .kl-table thead th {
         color:#fff; font-size:.79rem; font-weight:700;
@@ -105,12 +110,21 @@ if (!function_exists('klantUrl')) {
     .kl-btn-detail {
         display:inline-block; border:1px solid #bbb;
         background:#fff; color:#333; border-radius:.22rem;
-        padding:.17rem .7rem; font-size:.77rem;
+        padding:.22rem .8rem; font-size:.77rem;
         text-decoration:none; white-space:nowrap;
     }
     .kl-btn-detail:hover { background:#efefef; color:#333; }
 
     .kl-empty { text-align:center; padding:1.8rem 1rem; color:#666; font-size:.86rem; }
+
+    /* ── Mobile: filter neemt volledige breedte ── */
+    @media (max-width: 600px) {
+        .kl-filter-card { justify-content:flex-start; }
+        .kl-filter-grp  { width:100%; }
+        .kl-input        { width:100%; }
+        .kl-btn-toon,
+        .kl-btn-reset    { flex:1; text-align:center; justify-content:center; }
+    }
 </style>
 
 <!-- Breadcrumb -->
@@ -174,6 +188,7 @@ if (!function_exists('klantUrl')) {
     <?php endif; ?>
 
     <!-- Tabel -->
+    <div class="kl-table-wrap">
     <table class="kl-table">
         <thead>
             <tr>
@@ -225,6 +240,8 @@ if (!function_exists('klantUrl')) {
             <?php endif; ?>
         </tbody>
     </table>
+    </div>
 
 </div>
-
+
+

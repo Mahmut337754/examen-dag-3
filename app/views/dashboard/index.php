@@ -30,8 +30,8 @@ $naam     = htmlspecialchars($_SESSION['gebruiker_naam'] ?? '', ENT_QUOTES, 'UTF
         grid-template-columns:repeat(4, 1fr);
         gap:1rem;
     }
-    @media (max-width:900px) { .db-grid { grid-template-columns:repeat(2,1fr); } }
-    @media (max-width:540px) { .db-grid { grid-template-columns:1fr; } }
+    @media (max-width:900px)  { .db-grid { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:480px)  { .db-grid { grid-template-columns:1fr; } }
 
     .db-card {
         background:#fff;
@@ -62,6 +62,12 @@ $naam     = htmlspecialchars($_SESSION['gebruiker_naam'] ?? '', ENT_QUOTES, 'UTF
         transition:background .1s;
     }
     .db-btn-open:hover { background:#f0f0f0; color:#333; }
+
+    /* Mobile: titel iets kleiner */
+    @media (max-width:480px) {
+        .db-h1 { font-size:1.45rem; }
+        .db-sub { font-size:.83rem; }
+    }
 </style>
 
 <!-- Badge + Titel -->
@@ -122,4 +128,5 @@ $naam     = htmlspecialchars($_SESSION['gebruiker_naam'] ?? '', ENT_QUOTES, 'UTF
     </div>
 
 </div>
-
+
+

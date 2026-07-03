@@ -32,7 +32,8 @@ $mobielErr       = $errors['mobiel']        ?? '';
     /* Kaart */
     .kw-card {
         background:#fff; border:1px solid #ddd;
-        border-radius:.35rem; padding:1.35rem 1.5rem; max-width:680px;
+        border-radius:.35rem; padding:1.35rem 1.5rem;
+        max-width:680px; width:100%;
     }
     .kw-row { display:grid; grid-template-columns:1fr 1fr; gap:.85rem; margin-bottom:.9rem; }
     .kw-grp { display:flex; flex-direction:column; gap:.22rem; }
@@ -44,18 +45,18 @@ $mobielErr       = $errors['mobiel']        ?? '';
     .kw-input, .kw-textarea {
         border:1px solid #ced4da; border-radius:.25rem;
         padding:.4rem .65rem; font-size:.84rem;
-        background:#fff; color:#333;
+        background:#fff; color:#333; width:100%;
     }
     .kw-input:focus, .kw-textarea:focus { outline:none; border-color:#c0392b; }
     .kw-input.err, .kw-textarea.err { border-color:#dc3545; }
     .kw-input:disabled { background:#e9ecef; color:#6c757d; cursor:not-allowed; }
     .kw-textarea { resize:vertical; min-height:65px; }
 
-    .kw-err { font-size:.74rem; color:#dc3545; margin-top:.1rem; }
+    .kw-err  { font-size:.74rem; color:#dc3545; margin-top:.1rem; }
     .kw-hint { font-size:.74rem; color:#6c757d; margin-top:.1rem; }
 
     /* Knoppen */
-    .kw-actions { display:flex; justify-content:flex-end; gap:.5rem; margin-top:1.2rem; }
+    .kw-actions { display:flex; justify-content:flex-end; gap:.5rem; margin-top:1.2rem; flex-wrap:wrap; }
     .kw-btn-save {
         background:#c0392b; color:#fff; border:none;
         border-radius:.25rem; padding:.42rem 1.2rem;
@@ -69,6 +70,15 @@ $mobielErr       = $errors['mobiel']        ?? '';
         text-decoration:none; display:inline-block;
     }
     .kw-btn-cancel:hover { background:#5a6268; color:#fff; }
+
+    /* Mobile: 1 kolom */
+    @media (max-width: 560px) {
+        .kw-card { padding:1rem; }
+        .kw-row  { grid-template-columns:1fr; }
+        .kw-row > div[style*="grid-template-columns"] { grid-template-columns:1fr 1fr !important; }
+        .kw-actions { justify-content:stretch; }
+        .kw-btn-save, .kw-btn-cancel { flex:1; text-align:center; }
+    }
 </style>
 
 <!-- Breadcrumb -->
@@ -223,4 +233,5 @@ $mobielErr       = $errors['mobiel']        ?? '';
         </div>
     </div>
 </form>
-
+
+

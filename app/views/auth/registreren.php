@@ -1,158 +1,195 @@
 <!-- Choices.js CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/styles/choices.min.css">
 
-<div class="row justify-content-center mt-4">
-    <div class="col-lg-7 col-md-9">
+<style>
+    .reg-wrap {
+        max-width: 660px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 1.5rem 0;
+    }
+    .reg-header { text-align:center; margin-bottom:1.5rem; }
+    .reg-header h2 { font-size: clamp(1.25rem, 5vw, 1.65rem); font-weight:700; margin-top:.4rem; }
+    .reg-header p  { font-size:.87rem; color:#666; }
 
-        <div class="text-center mb-4">
-            <i class="bi bi-scissors fs-1 text-primary"></i>
-            <h3 class="mt-2 fw-bold">Kniploket Tiko</h3>
-            <p class="text-muted">Maak een account aan</p>
-        </div>
+    .reg-card {
+        background:#fff; border:1px solid #ddd;
+        border-radius:.4rem; padding:1.5rem;
+    }
+    .reg-grid { display:grid; grid-template-columns:1fr 1fr; gap:.85rem; }
+    .reg-full  { grid-column:1 / -1; }
+    .reg-grp   { display:flex; flex-direction:column; gap:.22rem; }
+    .reg-lbl   { font-size:.81rem; font-weight:600; color:#333; }
+    .reg-lbl .req { color:#c0392b; }
 
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
-                <form method="POST" action="<?= url('/registreren') ?>" novalidate id="regForm">
-                    <input type="hidden" name="csrf_token"
-                        value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+    .reg-input, .reg-select, .reg-textarea {
+        width:100%; border:1px solid #ced4da; border-radius:.25rem;
+        padding:.42rem .65rem; font-size:.85rem; color:#333;
+        background:#fff; box-sizing:border-box;
+    }
+    .reg-input:focus, .reg-select:focus, .reg-textarea:focus {
+        outline:none; border-color:#c0392b;
+    }
+    .reg-textarea { resize:vertical; min-height:75px; }
+    .reg-hint  { font-size:.74rem; color:#6c757d; }
+    .reg-err   { font-size:.74rem; color:#dc3545; display:none; }
+    .reg-pw-wrap { display:flex; }
+    .reg-pw-wrap .reg-input { border-radius:.25rem 0 0 .25rem; }
+    .reg-pw-btn {
+        border:1px solid #ced4da; border-left:none; background:#fff;
+        border-radius:0 .25rem .25rem 0; padding:0 .65rem;
+        cursor:pointer; color:#555; font-size:.88rem;
+        display:flex; align-items:center;
+    }
+    .reg-pw-btn:hover { background:#f8f8f8; }
 
-                    <div class="row g-3">
+    .reg-divider { border:none; border-top:1px solid #eee; margin:1.25rem 0; }
+    .reg-actions { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
+    .reg-btn-submit {
+        background:#c0392b; color:#fff; border:none;
+        border-radius:.25rem; padding:.46rem 1.3rem;
+        font-size:.87rem; font-weight:700; cursor:pointer;
+    }
+    .reg-btn-submit:hover { background:#a93226; }
+    .reg-login-link { font-size:.83rem; color:#555; }
+    .reg-login-link a { color:#c0392b; text-decoration:none; font-weight:600; }
+    .reg-login-link a:hover { text-decoration:underline; }
 
-                        <!-- Naam -->
-                        <div class="col-md-6">
-                            <label for="naam" class="form-label fw-semibold">
-                                Naam <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" class="form-control" id="naam" name="naam"
-                                required minlength="2" maxlength="100"
-                                autocomplete="name"
-                                value="<?= htmlspecialchars($oud['naam'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-                            <div class="invalid-feedback">
-                                Naam is verplicht (min. 2 tekens).
-                            </div>
-                        </div>
+    /* Sterkte-balk */
+    .reg-strength { height:4px; border-radius:2px; margin-top:.3rem; background:#eee; overflow:hidden; }
+    .reg-strength-bar { height:100%; width:0; transition:width .2s, background .2s; border-radius:2px; }
 
-                        <!-- E-mail -->
-                        <div class="col-md-6">
-                            <label for="email" class="form-label fw-semibold">
-                                E-mailadres <span class="text-danger">*</span>
-                            </label>
-                            <input type="email" class="form-control" id="email" name="email"
-                                required maxlength="255"
-                                autocomplete="email"
-                                value="<?= htmlspecialchars($oud['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-                            <div class="invalid-feedback">
-                                Voer een geldig e-mailadres in.
-                            </div>
-                        </div>
+    @media (max-width: 540px) {
+        .reg-grid  { grid-template-columns:1fr; }
+        .reg-full  { grid-column:1; }
+        .reg-card  { padding:1rem; }
+        .reg-actions { flex-direction:column; align-items:stretch; }
+        .reg-btn-submit { text-align:center; }
+    }
+</style>
 
-                        <!-- Wachtwoord -->
-                        <div class="col-md-6">
-                            <label for="wachtwoord" class="form-label fw-semibold">
-                                Wachtwoord <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="wachtwoord"
-                                    name="wachtwoord" required minlength="8" maxlength="72"
-                                    autocomplete="new-password">
-                                <button class="btn btn-outline-secondary" type="button"
-                                    onclick="toggleWw('wachtwoord','oog1')">
-                                    <i class="bi bi-eye" id="oog1"></i>
-                                </button>
-                            </div>
-                            <div class="form-text">Min. 8 tekens, 1 hoofdletter, 1 kleine letter, 1 cijfer.</div>
-                            <div class="invalid-feedback">Wachtwoord voldoet niet aan de eisen.</div>
-                            <!-- Sterkte-indicator -->
-                            <div class="progress mt-1" style="height:4px;" id="wwProgress" hidden>
-                                <div class="progress-bar" id="wwBar" role="progressbar"></div>
-                            </div>
-                            <small id="wwSterkte" class="text-muted"></small>
-                        </div>
+<div class="reg-wrap">
+    <div class="reg-header">
+        <i class="bi bi-scissors" style="font-size:2.2rem; color:#c9a84c;"></i>
+        <h2>Account aanmaken</h2>
+        <p>Maak een gratis klantaccount aan bij Kniploket Tiko</p>
+    </div>
 
-                        <!-- Wachtwoord bevestigen -->
-                        <div class="col-md-6">
-                            <label for="wachtwoord_bevestig" class="form-label fw-semibold">
-                                Wachtwoord bevestigen <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="wachtwoord_bevestig"
-                                    name="wachtwoord_bevestig" required minlength="8"
-                                    autocomplete="new-password">
-                                <button class="btn btn-outline-secondary" type="button"
-                                    onclick="toggleWw('wachtwoord_bevestig','oog2')">
-                                    <i class="bi bi-eye" id="oog2"></i>
-                                </button>
-                            </div>
-                            <div class="invalid-feedback" id="bevestigFout">
-                                Wachtwoorden komen niet overeen.
-                            </div>
-                        </div>
+    <div class="reg-card">
+        <form method="POST" action="<?= url('/registreren') ?>" novalidate id="regForm">
+            <input type="hidden" name="csrf_token"
+                value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
 
-                        <!-- Telefoonnummer -->
-                        <div class="col-md-6">
-                            <label for="telefoonnummer" class="form-label fw-semibold">Telefoonnummer</label>
-                            <input type="tel" class="form-control" id="telefoonnummer"
-                                name="telefoonnummer" maxlength="20"
-                                pattern="^(\+?[0-9][\d\s\-\.\(\)]{6,18})$"
-                                placeholder="bijv. 0612345678 of 020-1234567"
-                                autocomplete="tel"
-                                value="<?= htmlspecialchars($oud['telefoonnummer'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-                            <div class="invalid-feedback">
-                                Voer een geldig telefoonnummer in (bijv. 0612345678 of +31612345678).
-                            </div>
-                        </div>
+            <div class="reg-grid">
 
-                        <!-- Adres -->
-                        <div class="col-md-6">
-                            <label for="adres" class="form-label fw-semibold">Adres</label>
-                            <input type="text" class="form-control" id="adres" name="adres"
-                                maxlength="255" placeholder="Straat 1, 1234 AB Stad"
-                                autocomplete="street-address"
-                                value="<?= htmlspecialchars($oud['adres'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-                        </div>
+                <!-- Naam -->
+                <div class="reg-grp">
+                    <label for="naam" class="reg-lbl">Naam <span class="req">*</span></label>
+                    <input type="text" id="naam" name="naam" class="reg-input"
+                        required minlength="2" maxlength="100" autocomplete="name"
+                        placeholder="Voor- en achternaam"
+                        value="<?= htmlspecialchars($oud['naam'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                    <div class="reg-err" id="naamErr">Naam is verplicht (min. 2 tekens).</div>
+                </div>
 
-                        <!-- Allergenen -->
-                        <div class="col-12">
-                            <label for="allergenen" class="form-label fw-semibold">
-                                <i class="bi bi-exclamation-triangle text-danger me-1"></i>Allergenen
-                            </label>
-                            <select id="allergenen" name="allergenen[]" multiple
-                                class="form-select" data-choices>
-                                <?php foreach ($alleAllergenen as $al): ?>
-                                    <option value="<?= (int)$al['id'] ?>"
-                                        <?= in_array((int)$al['id'], array_map('intval', $geselecteerd)) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($al['naam'], ENT_QUOTES, 'UTF-8') ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <div class="form-text">Typ om te zoeken. Meerdere selecteerbaar.</div>
-                        </div>
+                <!-- E-mail -->
+                <div class="reg-grp">
+                    <label for="email" class="reg-lbl">E-mailadres <span class="req">*</span></label>
+                    <input type="email" id="email" name="email" class="reg-input"
+                        required maxlength="255" autocomplete="email"
+                        placeholder="naam@voorbeeld.nl"
+                        value="<?= htmlspecialchars($oud['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                    <div class="reg-err" id="emailErr">Voer een geldig e-mailadres in.</div>
+                </div>
 
-                        <!-- Wensen -->
-                        <div class="col-12">
-                            <label for="wensen" class="form-label fw-semibold">Wensen / opmerkingen</label>
-                            <textarea class="form-control" id="wensen" name="wensen"
-                                rows="3" maxlength="1000"
-                                placeholder="Bijv. voorkeur voor een bepaalde kapper of producten..."
-                            ><?= htmlspecialchars($oud['wensen'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
-                            <div class="form-text" id="wensenTeller">0 / 1000 tekens</div>
-                        </div>
-
-                    </div><!-- /row -->
-
-                    <hr class="my-4">
-
-                    <div class="d-flex gap-2 align-items-center">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-person-plus me-1"></i>Account aanmaken
+                <!-- Wachtwoord -->
+                <div class="reg-grp">
+                    <label for="wachtwoord" class="reg-lbl">Wachtwoord <span class="req">*</span></label>
+                    <div class="reg-pw-wrap">
+                        <input type="password" id="wachtwoord" name="wachtwoord" class="reg-input"
+                            required minlength="8" maxlength="72" autocomplete="new-password">
+                        <button type="button" class="reg-pw-btn" onclick="toggleWw('wachtwoord','oog1')">
+                            <i class="bi bi-eye" id="oog1"></i>
                         </button>
-                        <span class="text-muted small">Al een account?</span>
-                        <a href="/login" class="btn btn-link btn-sm p-0">Inloggen</a>
                     </div>
-                </form>
-            </div>
-        </div>
+                    <div class="reg-hint">Min. 8 tekens, 1 hoofdletter, 1 kleine letter, 1 cijfer.</div>
+                    <div class="reg-strength" id="wwProgress" hidden>
+                        <div class="reg-strength-bar" id="wwBar"></div>
+                    </div>
+                    <small id="wwSterkte" class="reg-hint"></small>
+                    <div class="reg-err" id="wwErr">Wachtwoord voldoet niet aan de eisen.</div>
+                </div>
 
+                <!-- Wachtwoord bevestigen -->
+                <div class="reg-grp">
+                    <label for="wachtwoord_bevestig" class="reg-lbl">Bevestig wachtwoord <span class="req">*</span></label>
+                    <div class="reg-pw-wrap">
+                        <input type="password" id="wachtwoord_bevestig" name="wachtwoord_bevestig"
+                            class="reg-input" required minlength="8" autocomplete="new-password">
+                        <button type="button" class="reg-pw-btn" onclick="toggleWw('wachtwoord_bevestig','oog2')">
+                            <i class="bi bi-eye" id="oog2"></i>
+                        </button>
+                    </div>
+                    <div class="reg-err" id="bevestigErr">Wachtwoorden komen niet overeen.</div>
+                </div>
+
+                <!-- Telefoonnummer -->
+                <div class="reg-grp">
+                    <label for="telefoonnummer" class="reg-lbl">Telefoonnummer</label>
+                    <input type="tel" id="telefoonnummer" name="telefoonnummer" class="reg-input"
+                        maxlength="20" autocomplete="tel"
+                        placeholder="bijv. 0612345678"
+                        value="<?= htmlspecialchars($oud['telefoonnummer'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                </div>
+
+                <!-- Adres -->
+                <div class="reg-grp">
+                    <label for="adres" class="reg-lbl">Adres</label>
+                    <input type="text" id="adres" name="adres" class="reg-input"
+                        maxlength="255" autocomplete="street-address"
+                        placeholder="Straat 1, 1234 AB Stad"
+                        value="<?= htmlspecialchars($oud['adres'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                </div>
+
+                <!-- Allergenen -->
+                <div class="reg-grp reg-full">
+                    <label for="allergenen" class="reg-lbl">
+                        <i class="bi bi-exclamation-triangle" style="color:#dc3545;"></i> Allergenen
+                    </label>
+                    <select id="allergenen" name="allergenen[]" multiple class="reg-select">
+                        <?php foreach ($alleAllergenen as $al): ?>
+                            <option value="<?= (int)$al['id'] ?>"
+                                <?= in_array((int)$al['id'], array_map('intval', $geselecteerd)) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($al['naam'], ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="reg-hint">Typ om te zoeken. Meerdere selecteerbaar.</div>
+                </div>
+
+                <!-- Wensen -->
+                <div class="reg-grp reg-full">
+                    <label for="wensen" class="reg-lbl">Wensen &amp; voorkeuren</label>
+                    <textarea id="wensen" name="wensen" class="reg-textarea"
+                        maxlength="1000"
+                        placeholder="Bijv. voorkeur voor ammoniakvrije producten..."
+                    ><?= htmlspecialchars($oud['wensen'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
+                    <div class="reg-hint" id="wensenTeller">0 / 1000 tekens</div>
+                </div>
+
+            </div><!-- /grid -->
+
+            <hr class="reg-divider">
+
+            <div class="reg-actions">
+                <button type="submit" class="reg-btn-submit">
+                    <i class="bi bi-check-circle me-1"></i>Account aanmaken
+                </button>
+                <div class="reg-login-link">
+                    Al een account? <a href="<?= url('/login') ?>">Inloggen</a>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -188,45 +225,43 @@ document.getElementById('wachtwoord').addEventListener('input', function () {
     if (/[0-9]/.test(ww))         score++;
     if (/[^A-Za-z0-9]/.test(ww))  score++;
     const labels = ['','Zeer zwak','Zwak','Redelijk','Sterk','Zeer sterk'];
-    const colors = ['','danger','warning','info','primary','success'];
+    const colors = ['#dc3545','#dc3545','#fd7e14','#0dcaf0','#0d6efd','#198754'];
     const prg = document.getElementById('wwProgress');
     const bar = document.getElementById('wwBar');
     const txt = document.getElementById('wwSterkte');
     prg.hidden = ww.length === 0;
-    bar.style.width = (score * 20) + '%';
-    bar.className   = 'progress-bar bg-' + (colors[score] || 'secondary');
-    txt.textContent = ww.length > 0 ? (labels[score] || '') : '';
+    bar.style.width  = (score * 20) + '%';
+    bar.style.background = colors[score] || '#eee';
+    txt.textContent  = ww.length > 0 ? (labels[score] || '') : '';
 });
 
-// Wachtwoord-overeenkomst check bij submit
-document.getElementById('regForm').addEventListener('submit', function (e) {
-    const ww  = document.getElementById('wachtwoord').value;
-    const bev = document.getElementById('wachtwoord_bevestig');
-    if (ww !== bev.value) {
-        bev.classList.add('is-invalid');
-        document.getElementById('bevestigFout').textContent = 'Wachtwoorden komen niet overeen.';
-        e.preventDefault();
-    } else {
-        bev.classList.remove('is-invalid');
-    }
-});
-
-// Live wachtwoord-overeenkomst
+// Live bevestig check
 document.getElementById('wachtwoord_bevestig').addEventListener('input', function () {
-    const ww  = document.getElementById('wachtwoord').value;
-    if (this.value && this.value !== ww) {
-        this.classList.add('is-invalid');
-    } else {
-        this.classList.remove('is-invalid');
+    const ww = document.getElementById('wachtwoord').value;
+    const err = document.getElementById('bevestigErr');
+    err.style.display = (this.value && this.value !== ww) ? 'block' : 'none';
+});
+
+// Submit validatie
+document.getElementById('regForm').addEventListener('submit', function (e) {
+    let ok = true;
+    const ww  = document.getElementById('wachtwoord');
+    const bev = document.getElementById('wachtwoord_bevestig');
+
+    if (ww.value !== bev.value) {
+        document.getElementById('bevestigErr').style.display = 'block';
+        ok = false;
     }
+    if (!ok) e.preventDefault();
 });
 
 // Tekenteller wensen
 const wensen = document.getElementById('wensen');
 const teller = document.getElementById('wensenTeller');
 function updateTeller() {
-    teller.textContent = wensen.value.length + ' / 1000 tekens';
-    teller.className = wensen.value.length > 900 ? 'form-text text-warning' : 'form-text text-muted';
+    const n = wensen.value.length;
+    teller.textContent  = n + ' / 1000 tekens';
+    teller.style.color  = n > 900 ? '#fd7e14' : '#6c757d';
 }
 wensen.addEventListener('input', updateTeller);
 updateTeller();

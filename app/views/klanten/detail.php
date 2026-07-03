@@ -17,7 +17,8 @@ $naam = htmlspecialchars(
 
     .kd-card {
         background:#fff; border:1px solid #ddd;
-        border-radius:.35rem; overflow:hidden; max-width:600px;
+        border-radius:.35rem; overflow:hidden;
+        max-width:600px; width:100%;
     }
     .kd-row {
         display:grid; grid-template-columns:160px 1fr;
@@ -25,11 +26,12 @@ $naam = htmlspecialchars(
     }
     .kd-row:last-child { border-bottom:none; }
     .kd-lbl { padding:.58rem 1rem; font-weight:600; color:#333; }
-    .kd-val { padding:.58rem 1rem; color:#2c3e50; }
+    .kd-val { padding:.58rem 1rem; color:#2c3e50; word-break:break-word; }
 
     .kd-actions {
         display:flex; justify-content:flex-end;
-        gap:.5rem; padding:.85rem 0; max-width:600px;
+        gap:.5rem; padding:.85rem 0;
+        max-width:600px; flex-wrap:wrap;
     }
     .kd-btn-wij {
         background:#c0392b; color:#fff; border:none;
@@ -45,6 +47,15 @@ $naam = htmlspecialchars(
         text-decoration:none; display:inline-block;
     }
     .kd-btn-terug:hover { background:#f0f0f0; color:#333; }
+
+    /* Mobile: label boven waarde ipv naast */
+    @media (max-width: 480px) {
+        .kd-row { grid-template-columns:1fr; }
+        .kd-lbl { padding:.5rem 1rem .1rem; }
+        .kd-val { padding:.1rem 1rem .5rem; }
+        .kd-actions { justify-content:stretch; }
+        .kd-btn-wij, .kd-btn-terug { flex:1; text-align:center; }
+    }
 </style>
 
 <!-- Breadcrumb -->
@@ -109,4 +120,5 @@ $naam = htmlspecialchars(
     <a href="<?= url('/klanten/wijzigen?id=' . (int)$klant['Id']) ?>" class="kd-btn-wij">Wijzigen</a>
     <a href="<?= url('/klanten') ?>" class="kd-btn-terug">Terug</a>
 </div>
-
+
+

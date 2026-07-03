@@ -204,6 +204,10 @@
             flex: 1;
         }
 
+        @media (max-width: 480px) {
+            .kt-content { margin: 1.1rem auto; padding: 0 .75rem; }
+        }
+
         /* Footer altijd onderaan, nooit zwevend */
         .kt-footer {
             background: #f0f0f0;
