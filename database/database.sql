@@ -118,24 +118,23 @@ CREATE TABLE MedewerkerPerContact (
 
 -- Users
 INSERT INTO users (id, name, email, email_verified_at, password, role, remember_token, created_at, updated_at, IsActief, Opmerking, DatumAangemaakt, DatumGewijzigd) VALUES
-(1, 'Lisa van Kniploket', 'lisa@kniploket.nl', NULL, '$2y$12$isqtV5oA4McYaUzLg/mOYehrPHn5ZaACtTA8iOicowzBfn7kgOX1e', 'eigenaar', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(2, 'Erik de Kapper', 'erik@kniploket.nl', NULL, '$2y$12$ecoHj1bPiqhZtV0IzdIDN.erSQWprAiFIgX0M9QbAN.dO90S514Ui', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(3, 'Sanne de Vries', 'sanne.devries@kniplokettiko.nl', NULL, '$2y$12$ecoHj1bPiqhZtV0IzdIDN.erSQWprAiFIgX0M9QbAN.dO90S514Ui', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(4, 'Mohamed El Idrissi', 'mohamed.elidrissi@kniplokettiko.nl', NULL, '$2y$12$ecoHj1bPiqhZtV0IzdIDN.erSQWprAiFIgX0M9QbAN.dO90S514Ui', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(5, 'Lisa van Dijk', 'lisa.vandijk@kniplokettiko.nl', NULL, '$2y$12$ecoHj1bPiqhZtV0IzdIDN.erSQWprAiFIgX0M9QbAN.dO90S514Ui', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(6, 'Youssef Benali', 'youssef.benali@kniplokettiko.nl', NULL, '$2y$12$ecoHj1bPiqhZtV0IzdIDN.erSQWprAiFIgX0M9QbAN.dO90S514Ui', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(7, 'Noor Bakker', 'noor.bakker@kniplokettiko.nl', NULL, '$2y$12$ecoHj1bPiqhZtV0IzdIDN.erSQWprAiFIgX0M9QbAN.dO90S514Ui', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(8, 'Kevin Smit', 'kevin.smit@kniplokettiko.nl', NULL, '$2y$12$ecoHj1bPiqhZtV0IzdIDN.erSQWprAiFIgX0M9QbAN.dO90S514Ui', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(9, 'Aylin Demir', 'aylin.demir@kniplokettiko.nl', NULL, '$2y$12$ecoHj1bPiqhZtV0IzdIDN.erSQWprAiFIgX0M9QbAN.dO90S514Ui', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(10, 'Tom Verhoeven', 'tom.verhoeven@kniplokettiko.nl', NULL, '$2y$12$ecoHj1bPiqhZtV0IzdIDN.erSQWprAiFIgX0M9QbAN.dO90S514Ui', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(11, 'Romy Jacobs', 'romy.jacobs@kniplokettiko.nl', NULL, '$2y$12$ecoHj1bPiqhZtV0IzdIDN.erSQWprAiFIgX0M9QbAN.dO90S514Ui', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(12, 'Piet van Loenen', 'piet.van.loenen@gmail.com', NULL, '$2y$12$q6sJssnJzzDuWyi.fPNd/ulSl3HA20PpQAyfe2C3a70zV79cxSUqu', 'klant', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(13, 'Jan Jansen', 'jan.jansen@outlook.com', NULL, '$2y$12$q6sJssnJzzDuWyi.fPNd/ulSl3HA20PpQAyfe2C3a70zV79cxSUqu', 'klant', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(14, 'Saskia de Boer', 'saskia.deboer@yahoo.com', NULL, '$2y$12$q6sJssnJzzDuWyi.fPNd/ulSl3HA20PpQAyfe2C3a70zV79cxSUqu', 'klant', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(15, 'Ahmed Mansouri', 'ahmed.mansouri@icloud.com', NULL, '$2y$12$q6sJssnJzzDuWyi.fPNd/ulSl3HA20PpQAyfe2C3a70zV79cxSUqu', 'klant', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(16, 'Marieke van den Berg', 'marieke.vandenberg@ziggo.nl', NULL, '$2y$12$q6sJssnJzzDuWyi.fPNd/ulSl3HA20PpQAyfe2C3a70zV79cxSUqu', 'klant', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(17, 'Daan Visser', 'daan.visser@live.nl', NULL, '$2y$12$q6sJssnJzzDuWyi.fPNd/ulSl3HA20PpQAyfe2C3a70zV79cxSUqu', 'klant', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(18, 'Sophie Klant', 'sophie@example.com', NULL, '$2y$12$q6sJssnJzzDuWyi.fPNd/ulSl3HA20PpQAyfe2C3a70zV79cxSUqu', 'klant', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30');
+(1,  'SalonEigenaar',       'eigenaar@kniplokettiko.nl',           NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'eigenaar',   NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(2,  'Fatima El Amrani',    'fatima@kniplokettiko.nl',             NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(3,  'Sanne de Vries',      'sanne.devries@kniplokettiko.nl',      NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(4,  'Mohamed El Idrissi',  'mohamed.elidrissi@kniplokettiko.nl',  NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(5,  'Lisa van Dijk',       'lisa.vandijk@kniplokettiko.nl',       NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(6,  'Youssef Benali',      'youssef.benali@kniplokettiko.nl',     NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(7,  'Noor Bakker',         'noor.bakker@kniplokettiko.nl',        NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(8,  'Kevin Smit',          'kevin.smit@kniplokettiko.nl',         NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(9,  'Aylin Demir',         'aylin.demir@kniplokettiko.nl',        NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(10, 'Tom Verhoeven',       'tom.verhoeven@kniplokettiko.nl',      NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(11, 'Romy Jacobs',         'romy.jacobs@kniplokettiko.nl',        NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(12, 'Piet van Loenen',     'piet.van.loenen@gmail.com',           NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(13, 'Jan Jansen',          'jan.jansen@outlook.com',              NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(14, 'Saskia de Boer',      'saskia.deboer@yahoo.com',             NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(15, 'Ahmed Mansouri',      'ahmed.mansouri@icloud.com',           NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(16, 'Marieke van den Berg','marieke.vandenberg@ziggo.nl',         NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(17, 'Daan Visser',         'daan.visser@live.nl',                 NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30');
 
 -- Klant
 INSERT INTO Klant (Id, UserId, Voornaam, Tussenvoegsel, Achternaam, Relatienummer, Bijzonderheden, IsActief, Opmerking, DatumAangemaakt, DatumGewijzigd) VALUES
@@ -201,7 +200,7 @@ INSERT INTO MedewerkerPerContact (Id, MedewerkerId, ContactId, IsActief, Opmerki
 (10, 10, 10, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30');
 
 -- Reset auto-increment to correct values (optional but recommended)
-ALTER TABLE users AUTO_INCREMENT = 19;
+ALTER TABLE users AUTO_INCREMENT = 18;
 ALTER TABLE Klant AUTO_INCREMENT = 7;
 ALTER TABLE Medewerker AUTO_INCREMENT = 11;
 ALTER TABLE Contact AUTO_INCREMENT = 17;
