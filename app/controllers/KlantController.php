@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Validator;
 use App\Models\KlantModel;
 
 /**
@@ -165,27 +166,23 @@ class KlantController extends Controller
         // Serverside validatie
         $validatieErrors = [];
 
-        if (empty($contactEmail)) {
-            $validatieErrors['contact_email'] = 'Contact e-mailadres is verplicht';
-        } elseif (!filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) {
-            $validatieErrors['contact_email'] = 'Voer een geldig e-mailadres in';
+        if ($f = Validator::foutEmail($contactEmail, 'Contact e-mailadres')) {
+            $validatieErrors['contact_email'] = $f;
         }
-        if (empty($straatnaam)) {
-            $validatieErrors['straatnaam'] = 'Straatnaam is verplicht';
+        if ($f = Validator::foutVerplicht($straatnaam, 'Straatnaam')) {
+            $validatieErrors['straatnaam'] = $f;
         }
-        if (empty($huisnummer)) {
-            $validatieErrors['huisnummer'] = 'Huisnummer is verplicht';
+        if ($f = Validator::foutHuisnummer($huisnummer)) {
+            $validatieErrors['huisnummer'] = $f;
         }
-        if (empty($postcode)) {
-            $validatieErrors['postcode'] = 'Postcode is verplicht';
-        } elseif (!preg_match('/^\d{4}\s?[A-Za-z]{2}$/', $postcode)) {
-            $validatieErrors['postcode'] = 'Voer een geldige postcode in (bijv. 3512AB)';
+        if ($f = Validator::foutPostcode($postcode)) {
+            $validatieErrors['postcode'] = $f;
         }
-        if (empty($plaats)) {
-            $validatieErrors['plaats'] = 'Plaats is verplicht';
+        if ($f = Validator::foutPlaats($plaats)) {
+            $validatieErrors['plaats'] = $f;
         }
-        if (empty($mobiel)) {
-            $validatieErrors['mobiel'] = 'Mobiel is verplicht';
+        if ($f = Validator::foutVerplicht($mobiel, 'Mobiel')) {
+            $validatieErrors['mobiel'] = $f;
         }
 
         if (!empty($validatieErrors)) {

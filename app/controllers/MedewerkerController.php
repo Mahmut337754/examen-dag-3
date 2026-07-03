@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Validator;
 use App\Models\MedewerkerModel;
 
 /**
@@ -158,35 +159,31 @@ class MedewerkerController extends Controller
         // ── Serverside validatie ──────────────────────────────────────
         $validatieErrors = [];
 
-        if (empty($specialisatie)) {
-            $validatieErrors['specialisatie'] = 'Specialisatie is verplicht';
+        if ($f = Validator::foutVerplicht($specialisatie, 'Specialisatie')) {
+            $validatieErrors['specialisatie'] = $f;
         }
         if (empty($geboortedatum)) {
             $validatieErrors['geboortedatum'] = 'Geboortedatum is verplicht';
         } elseif (!strtotime($geboortedatum)) {
             $validatieErrors['geboortedatum'] = 'Voer een geldige datum in';
         }
-        if (empty($contactEmail)) {
-            $validatieErrors['contact_email'] = 'Contact e-mail is verplicht';
-        } elseif (!filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) {
-            $validatieErrors['contact_email'] = 'Voer een geldig e-mailadres in';
+        if ($f = Validator::foutEmail($contactEmail, 'Contact e-mail')) {
+            $validatieErrors['contact_email'] = $f;
         }
-        if (empty($straatnaam)) {
-            $validatieErrors['straatnaam'] = 'Straatnaam is verplicht';
+        if ($f = Validator::foutVerplicht($straatnaam, 'Straatnaam')) {
+            $validatieErrors['straatnaam'] = $f;
         }
-        if (empty($huisnummer)) {
-            $validatieErrors['huisnummer'] = 'Huisnummer is verplicht';
+        if ($f = Validator::foutHuisnummer($huisnummer)) {
+            $validatieErrors['huisnummer'] = $f;
         }
-        if (empty($postcode)) {
-            $validatieErrors['postcode'] = 'Postcode is verplicht';
-        } elseif (!preg_match('/^\d{4}\s?[A-Za-z]{2}$/', $postcode)) {
-            $validatieErrors['postcode'] = 'Voer een geldige postcode in (bijv. 3512AB)';
+        if ($f = Validator::foutPostcode($postcode)) {
+            $validatieErrors['postcode'] = $f;
         }
-        if (empty($plaats)) {
-            $validatieErrors['plaats'] = 'Plaats is verplicht';
+        if ($f = Validator::foutPlaats($plaats)) {
+            $validatieErrors['plaats'] = $f;
         }
-        if (empty($mobiel)) {
-            $validatieErrors['mobiel'] = 'Mobiel is verplicht';
+        if ($f = Validator::foutVerplicht($mobiel, 'Mobiel')) {
+            $validatieErrors['mobiel'] = $f;
         }
 
         // Minderjarige + Permanent check (ook client-side gevangen, maar ook hier)

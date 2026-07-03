@@ -8,6 +8,9 @@
          failOnWarning="false">
 
     <testsuites>
+        <testsuite name="Kniploket Tiko – Validator Tests">
+            <file>tests/ValidatorTest.php</file>
+        </testsuite>
         <testsuite name="Kniploket Tiko – Klant Tests">
             <file>tests/KlantTest.php</file>
         </testsuite>
