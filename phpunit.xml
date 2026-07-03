@@ -9,8 +9,8 @@
 
     <testsuites>
         <testsuite name="Kniploket Tiko – Unit Tests">
-            <file>tests/ProductTest.php</file>
             <file>tests/KlantTest.php</file>
+            <file>tests/MedewerkerTest.php</file>
         </testsuite>
     </testsuites>
 
