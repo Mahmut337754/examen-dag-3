@@ -105,7 +105,7 @@ class Validator
      */
     public static function foutHuisnummer(string $huisnummer): ?string
     {
-        if (empty(trim($huisnummer))) {
+        if (trim($huisnummer) === '') {
             return 'Huisnummer is verplicht';
         }
         if (!self::isGeldigHuisnummer($huisnummer)) {
