@@ -13,7 +13,7 @@
 - **Rol**: medewerker
 
 > Alle medewerkers en klanten gebruiken hetzelfde wachtwoord: `Admin123!`  
-> Het wachtwoord-hash in de database: `$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu`
+> Het wachtwoord-hash in de database: `$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.`
 
 ---
 
