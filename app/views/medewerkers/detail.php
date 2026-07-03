@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $naam = htmlspecialchars(
     $medewerker['Voornaam']
     . ($medewerker['Tussenvoegsel'] ? ' ' . $medewerker['Tussenvoegsel'] : '')
@@ -63,13 +63,6 @@ $naam = htmlspecialchars(
         text-decoration:none; display:inline-block;
     }
     .md-btn-terug:hover { background:#f0f0f0; color:#333; }
-
-    .md-footer {
-        text-align:center;
-        margin-top:2.5rem;
-        font-size:.78rem;
-        color:#aaa;
-    }
 </style>
 
 <!-- Breadcrumb -->
@@ -144,8 +137,4 @@ $naam = htmlspecialchars(
     <a href="<?= url('/medewerkers/wijzigen?id=' . (int)$medewerker['Id']) ?>" class="md-btn-wij">Wijzigen</a>
     <a href="<?= url('/medewerkers') ?>" class="md-btn-terug">Terug</a>
 </div>
-
-<!-- Footer -->
-<div class="md-footer">
-    © 2026 Kniploket Tiko – Alle rechten voorbehouden
-</div>
+

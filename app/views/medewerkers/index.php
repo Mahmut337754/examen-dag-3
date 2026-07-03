@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 if (!function_exists('medewerkerUrl')) {
     function medewerkerUrl(int $pagina, string $specialisatie): string {
         $params = ['pagina' => $pagina];
@@ -228,15 +228,6 @@ if (!function_exists('medewerkerUrl')) {
         color: #666;
         font-size: .86rem;
     }
-
-    /* ── Footer ── */
-    .mw-footer {
-        text-align: center;
-        margin-top: 3rem;
-        padding-bottom: 1.5rem;
-        font-size: .77rem;
-        color: #aaa;
-    }
 </style>
 
 <!-- Breadcrumb -->
@@ -361,8 +352,4 @@ if (!function_exists('medewerkerUrl')) {
     </table>
 
 </div>
-
-<!-- Footer -->
-<div class="mw-footer">
-    © 2026 Kniploket Tiko – Alle rechten voorbehouden
-</div>
+

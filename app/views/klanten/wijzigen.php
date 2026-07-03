@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $naam = htmlspecialchars(
     $klant['Voornaam']
     . ($klant['Tussenvoegsel'] ? ' ' . $klant['Tussenvoegsel'] : '')
@@ -69,8 +69,6 @@ $mobielErr       = $errors['mobiel']        ?? '';
         text-decoration:none; display:inline-block;
     }
     .kw-btn-cancel:hover { background:#5a6268; color:#fff; }
-
-    .kw-footer { text-align:center; margin-top:3rem; padding-bottom:1.5rem; font-size:.77rem; color:#aaa; }
 </style>
 
 <!-- Breadcrumb -->
@@ -225,8 +223,4 @@ $mobielErr       = $errors['mobiel']        ?? '';
         </div>
     </div>
 </form>
-
-<!-- Footer -->
-<div class="kw-footer">
-    © 2026 Kniploket Tiko – Alle rechten voorbehouden
-</div>
+

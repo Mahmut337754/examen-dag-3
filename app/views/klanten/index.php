@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 if (!function_exists('klantUrl')) {
     function klantUrl(int $pagina, string $postcode): string {
         $params = ['pagina' => $pagina];
@@ -111,9 +111,6 @@ if (!function_exists('klantUrl')) {
     .kl-btn-detail:hover { background:#efefef; color:#333; }
 
     .kl-empty { text-align:center; padding:1.8rem 1rem; color:#666; font-size:.86rem; }
-
-    /* ── Footer ── */
-    .kl-footer { text-align:center; margin-top:3rem; padding-bottom:1.5rem; font-size:.77rem; color:#aaa; }
 </style>
 
 <!-- Breadcrumb -->
@@ -230,8 +227,4 @@ if (!function_exists('klantUrl')) {
     </table>
 
 </div>
-
-<!-- Footer -->
-<div class="kl-footer">
-    © 2026 Kniploket Tiko – Alle rechten voorbehouden
-</div>
+

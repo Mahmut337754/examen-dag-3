@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $naam = htmlspecialchars(
     $klant['Voornaam']
     . ($klant['Tussenvoegsel'] ? ' ' . $klant['Tussenvoegsel'] : '')
@@ -45,8 +45,6 @@ $naam = htmlspecialchars(
         text-decoration:none; display:inline-block;
     }
     .kd-btn-terug:hover { background:#f0f0f0; color:#333; }
-
-    .kd-footer { text-align:center; margin-top:3rem; padding-bottom:1.5rem; font-size:.77rem; color:#aaa; }
 </style>
 
 <!-- Breadcrumb -->
@@ -111,8 +109,4 @@ $naam = htmlspecialchars(
     <a href="<?= url('/klanten/wijzigen?id=' . (int)$klant['Id']) ?>" class="kd-btn-wij">Wijzigen</a>
     <a href="<?= url('/klanten') ?>" class="kd-btn-terug">Terug</a>
 </div>
-
-<!-- Footer -->
-<div class="kd-footer">
-    © 2026 Kniploket Tiko – Alle rechten voorbehouden
-</div>
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $rol      = htmlspecialchars(ucfirst($_SESSION['gebruiker_rol']  ?? ''), ENT_QUOTES, 'UTF-8');
 $naam     = htmlspecialchars($_SESSION['gebruiker_naam'] ?? '', ENT_QUOTES, 'UTF-8');
 ?>
@@ -62,11 +62,6 @@ $naam     = htmlspecialchars($_SESSION['gebruiker_naam'] ?? '', ENT_QUOTES, 'UTF
         transition:background .1s;
     }
     .db-btn-open:hover { background:#f0f0f0; color:#333; }
-
-    .db-footer {
-        text-align:center; margin-top:3rem;
-        padding-bottom:1.5rem; font-size:.77rem; color:#aaa;
-    }
 </style>
 
 <!-- Badge + Titel -->
@@ -127,8 +122,4 @@ $naam     = htmlspecialchars($_SESSION['gebruiker_naam'] ?? '', ENT_QUOTES, 'UTF
     </div>
 
 </div>
-
-<!-- Footer -->
-<div class="db-footer">
-    © 2026 Kniploket Tiko – Alle rechten voorbehouden
-</div>
+
