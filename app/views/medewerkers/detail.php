@@ -47,6 +47,14 @@ $naam = htmlspecialchars(
         border-top:1px solid #e0e0e0;
         max-width:700px;
     }
+    .md-btn-wij {
+        background:#c0392b; color:#fff; border:none;
+        border-radius:.25rem; padding:.42rem 1.2rem;
+        font-size:.85rem; font-weight:600; cursor:pointer;
+        text-decoration:none; display:inline-block;
+    }
+    .md-btn-wij:hover { background:#a93226; color:#fff; }
+
     .md-btn-terug {
         background:#fff; color:#333;
         border:1px solid #ced4da;
@@ -125,10 +133,15 @@ $naam = htmlspecialchars(
         <div class="md-lbl">Mobiel</div>
         <div class="md-val"><?= htmlspecialchars($medewerker['Mobiel'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
     </div>
+    <div class="md-row">
+        <div class="md-lbl">Opmerking</div>
+        <div class="md-val"><?= htmlspecialchars($medewerker['Opmerking'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
 </div>
 
 <!-- Knoppen -->
 <div class="md-actions">
+    <a href="<?= url('/medewerkers/wijzigen?id=' . (int)$medewerker['Id']) ?>" class="md-btn-wij">Wijzigen</a>
     <a href="<?= url('/medewerkers') ?>" class="md-btn-terug">Terug</a>
 </div>
 
