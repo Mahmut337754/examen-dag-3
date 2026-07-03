@@ -1,0 +1,2 @@
+# Blokkeer directe webbrowsertoegang tot de app-map
+Deny from all

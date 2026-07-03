@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         stopOnFailure="false"
+         failOnDeprecation="false"
+         failOnWarning="false">
+
+    <testsuites>
+        <testsuite name="Kniploket Tiko – Unit Tests">
+            <file>tests/ProductTest.php</file>
+            <file>tests/KlantTest.php</file>
+        </testsuite>
+    </testsuites>
+
+</phpunit>
