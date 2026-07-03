@@ -33,8 +33,8 @@ class MedewerkerController extends Controller
         $filterActief         = $gekozenSpecialisatie !== '' && $gekozenSpecialisatie !== 'Alle specialisaties';
         $specialisatie        = $filterActief ? $gekozenSpecialisatie : null;
 
-        // Haal alle unieke specialisaties op voor de dropdown
-        $specialisaties = $this->medewerkerModel->getUniekeSpecialisaties();
+        // Vaste lijst specialisaties voor filter (inclusief Permanent, ook zonder medewerkers)
+        $specialisaties = $this->medewerkerModel->getAlleSpecialisaties();
 
         // Paginering – 4 medewerkers per pagina (volgens wireframe)
         $perPagina     = 4;

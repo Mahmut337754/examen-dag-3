@@ -118,7 +118,7 @@ CREATE TABLE MedewerkerPerContact (
 
 -- Users
 INSERT INTO users (id, name, email, email_verified_at, password, role, remember_token, created_at, updated_at, IsActief, Opmerking, DatumAangemaakt, DatumGewijzigd) VALUES
-(1,  'SalonEigenaar',       'eigenaar@kniplokettiko.nl',           NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'eigenaar',   NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
+(1,  'Salon Eigenaar',      'eigenaar@kniplokettiko.nl',           NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'eigenaar',   NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
 (2,  'Fatima El Amrani',    'fatima@kniplokettiko.nl',             NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
 (3,  'Sanne de Vries',      'sanne.devries@kniplokettiko.nl',      NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
 (4,  'Mohamed El Idrissi',  'mohamed.elidrissi@kniplokettiko.nl',  NULL, '$2y$10$1S7dpZxfyl4IcQAtIzUklulMSor3EADTAPktFHNcFsg87geQVgrMu', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
