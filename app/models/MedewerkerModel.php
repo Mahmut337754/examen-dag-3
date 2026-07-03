@@ -90,7 +90,8 @@ class MedewerkerModel
     {
         try {
             $stmt = $this->pdo->prepare(
-                'SELECT m.*,
+                'SELECT m.Id, m.Voornaam, m.Tussenvoegsel, m.Achternaam,
+                        m.Specialisatie, m.Geboortedatum, m.Opmerking,
                         u.email AS AccountEmail,
                         u.name AS GebruikersNaam,
                         c.Straatnaam, c.Huisnummer, c.Toevoeging,
@@ -109,6 +110,68 @@ class MedewerkerModel
             $this->logger->error('MedewerkerModel::vindOpId – ' . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Wijzig medewerkergegevens via stored procedure sp_UpdateMedewerkerGegevens.
+     * Geeft array terug: ['success' => bool, 'message' => string]
+     */
+    public function wijzigMedewerker(int $id, array $data): array
+    {
+        try {
+            $stmt = $this->pdo->prepare(
+                'CALL sp_UpdateMedewerkerGegevens(
+                    :id, :specialisatie, :geboortedatum, :contact_email,
+                    :straatnaam, :huisnummer, :toevoeging, :postcode,
+                    :plaats, :mobiel, :opmerking,
+                    @p_success, @p_message
+                )'
+            );
+            $stmt->execute([
+                ':id'            => $id,
+                ':specialisatie' => $data['specialisatie'],
+                ':geboortedatum' => $data['geboortedatum'],
+                ':contact_email' => $data['contact_email'],
+                ':straatnaam'    => $data['straatnaam'],
+                ':huisnummer'    => $data['huisnummer'],
+                ':toevoeging'    => $data['toevoeging'] ?: null,
+                ':postcode'      => $data['postcode'],
+                ':plaats'        => $data['plaats'],
+                ':mobiel'        => $data['mobiel'],
+                ':opmerking'     => $data['opmerking'] ?: null,
+            ]);
+
+            // Haal OUT parameters op
+            $out = $this->pdo->query('SELECT @p_success AS success, @p_message AS message')->fetch(PDO::FETCH_ASSOC);
+
+            $this->logger->info("MedewerkerModel::wijzigMedewerker – id={$id}, success={$out['success']}, message={$out['message']}");
+
+            return [
+                'success' => (bool)(int)$out['success'],
+                'message' => $out['message'],
+            ];
+        } catch (\PDOException $e) {
+            $this->logger->error('MedewerkerModel::wijzigMedewerker – ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Databasefout bij wijzigen medewerker.'];
+        }
+    }
+
+    /**
+     * Bereken leeftijd op basis van geboortedatum string (YYYY-MM-DD).
+     */
+    public function berekenLeeftijd(string $geboortedatum): int
+    {
+        $geb = new \DateTime($geboortedatum);
+        $nu  = new \DateTime();
+        return (int)$geb->diff($nu)->y;
+    }
+
+    /**
+     * Geeft vaste lijst van toegestane specialisaties terug.
+     */
+    public function getAlleSpecialisaties(): array
+    {
+        return ['Extensions', 'Kleuren', 'Knippen', 'Permanent', 'Stylen'];
     }
 
     // ----------------------------------------------------------------

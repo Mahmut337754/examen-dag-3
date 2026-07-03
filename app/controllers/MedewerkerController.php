@@ -82,6 +82,7 @@ class MedewerkerController extends Controller
     {
         $this->vereisLogin();
         $id         = (int) ($_GET['id'] ?? 0);
+        $flash      = $this->getFlash();
         $medewerker = $this->medewerkerModel->vindOpId($id);
 
         if (!$medewerker) {
@@ -96,6 +97,193 @@ class MedewerkerController extends Controller
             json_encode(['medewerker_id' => $id])
         );
 
-        $this->view('medewerkers/detail', compact('medewerker'));
+        $this->view('medewerkers/detail', compact('medewerker', 'flash'));
+    }
+
+    /**
+     * GET /medewerkers/wijzigen
+     * Toont het wijzigformulier voor één medewerker
+     */
+    public function wijzigenForm(): void
+    {
+        $this->vereisLogin();
+        $id         = (int) ($_GET['id'] ?? 0);
+        $medewerker = $this->medewerkerModel->vindOpId($id);
+
+        if (!$medewerker) {
+            $this->setFlash('error', 'Medewerker niet gevonden.');
+            $this->redirect('/medewerkers');
+        }
+
+        $csrfToken      = $this->genereerCsrfToken();
+        $flash          = $this->getFlash();
+        $specialisaties = $this->medewerkerModel->getAlleSpecialisaties();
+
+        $this->view('medewerkers/wijzigen', compact('csrfToken', 'flash', 'medewerker', 'specialisaties'));
+    }
+
+    /**
+     * POST /medewerkers/wijzigen
+     * Verwerkt het wijzigformulier
+     */
+    public function wijzigen(): void
+    {
+        $this->vereisLogin();
+
+        // CSRF
+        if (!$this->valideerCsrfToken($_POST['csrf_token'] ?? '')) {
+            $this->setFlash('error', 'Ongeldig CSRF-token.');
+            $this->redirect('/medewerkers');
+        }
+
+        $id            = (int)  ($_POST['id']            ?? 0);
+        $specialisatie = trim(   $_POST['specialisatie']  ?? '');
+        $geboortedatum = trim(   $_POST['geboortedatum']  ?? '');
+        $contactEmail  = trim(   $_POST['contact_email']  ?? '');
+        $straatnaam    = trim(   $_POST['straatnaam']     ?? '');
+        $huisnummer    = trim(   $_POST['huisnummer']     ?? '');
+        $toevoeging    = trim(   $_POST['toevoeging']     ?? '');
+        $postcode      = trim(   $_POST['postcode']       ?? '');
+        $plaats        = trim(   $_POST['plaats']         ?? '');
+        $mobiel        = trim(   $_POST['mobiel']         ?? '');
+        $opmerking     = trim(   $_POST['opmerking']      ?? '');
+
+        // Medewerker ophalen
+        $medewerker = $this->medewerkerModel->vindOpId($id);
+        if (!$medewerker) {
+            $this->setFlash('error', 'Medewerker niet gevonden.');
+            $this->redirect('/medewerkers');
+        }
+
+        // ── Serverside validatie ──────────────────────────────────────
+        $validatieErrors = [];
+
+        if (empty($specialisatie)) {
+            $validatieErrors['specialisatie'] = 'Specialisatie is verplicht';
+        }
+        if (empty($geboortedatum)) {
+            $validatieErrors['geboortedatum'] = 'Geboortedatum is verplicht';
+        } elseif (!strtotime($geboortedatum)) {
+            $validatieErrors['geboortedatum'] = 'Voer een geldige datum in';
+        }
+        if (empty($contactEmail)) {
+            $validatieErrors['contact_email'] = 'Contact e-mail is verplicht';
+        } elseif (!filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) {
+            $validatieErrors['contact_email'] = 'Voer een geldig e-mailadres in';
+        }
+        if (empty($straatnaam)) {
+            $validatieErrors['straatnaam'] = 'Straatnaam is verplicht';
+        }
+        if (empty($huisnummer)) {
+            $validatieErrors['huisnummer'] = 'Huisnummer is verplicht';
+        }
+        if (empty($postcode)) {
+            $validatieErrors['postcode'] = 'Postcode is verplicht';
+        } elseif (!preg_match('/^\d{4}\s?[A-Za-z]{2}$/', $postcode)) {
+            $validatieErrors['postcode'] = 'Voer een geldige postcode in (bijv. 3512AB)';
+        }
+        if (empty($plaats)) {
+            $validatieErrors['plaats'] = 'Plaats is verplicht';
+        }
+        if (empty($mobiel)) {
+            $validatieErrors['mobiel'] = 'Mobiel is verplicht';
+        }
+
+        // Minderjarige + Permanent check (ook client-side gevangen, maar ook hier)
+        if (empty($validatieErrors['geboortedatum']) && !empty($geboortedatum)) {
+            $leeftijd = $this->medewerkerModel->berekenLeeftijd($geboortedatum);
+            if ($leeftijd < 18 && $specialisatie === 'Permanent') {
+                $validatieErrors['specialisatie'] =
+                    'Minderjarige medewerkers mogen geen specialisatie Permanent toegewezen krijgen '
+                    . 'vanwege het werken met gevaarlijke stoffen en chemicaliën.';
+            }
+        }
+
+        $specialisaties = $this->medewerkerModel->getAlleSpecialisaties();
+
+        // Bij validatiefouten: direct terug naar formulier
+        if (!empty($validatieErrors)) {
+            $this->medewerkerModel->logTechnischeActie(
+                'WARNING', 'MedewerkerController',
+                'Wijzigen medewerker mislukt (validatie)',
+                json_encode(['id' => $id, 'errors' => $validatieErrors])
+            );
+
+            $csrfToken = $this->genereerCsrfToken();
+            $flash     = [
+                'type'    => 'error',
+                'bericht' => 'Medewerkergegevens zijn niet bijgewerkt',
+                'errors'  => $validatieErrors,
+            ];
+
+            // Overschrijf medewerkerdata met ingevoerde waarden
+            $medewerker['Specialisatie'] = $specialisatie;
+            $medewerker['Geboortedatum'] = $geboortedatum;
+            $medewerker['ContactEmail']  = $contactEmail;
+            $medewerker['Straatnaam']    = $straatnaam;
+            $medewerker['Huisnummer']    = $huisnummer;
+            $medewerker['Toevoeging']    = $toevoeging;
+            $medewerker['Postcode']      = $postcode;
+            $medewerker['Plaats']        = $plaats;
+            $medewerker['Mobiel']        = $mobiel;
+            $medewerker['Opmerking']     = $opmerking;
+
+            $this->view('medewerkers/wijzigen', compact('csrfToken', 'flash', 'medewerker', 'specialisaties'));
+            return;
+        }
+
+        // ── Opslaan via stored procedure ─────────────────────────────
+        $resultaat = $this->medewerkerModel->wijzigMedewerker($id, [
+            'specialisatie' => $specialisatie,
+            'geboortedatum' => $geboortedatum,
+            'contact_email' => $contactEmail,
+            'straatnaam'    => $straatnaam,
+            'huisnummer'    => $huisnummer,
+            'toevoeging'    => $toevoeging,
+            'postcode'      => $postcode,
+            'plaats'        => $plaats,
+            'mobiel'        => $mobiel,
+            'opmerking'     => $opmerking,
+        ]);
+
+        if (!$resultaat['success']) {
+            // Stored procedure gaf fout terug (bijv. nog een extra leeftijdscheck)
+            $this->medewerkerModel->logTechnischeActie(
+                'WARNING', 'MedewerkerController',
+                'Wijzigen medewerker geweigerd door stored procedure',
+                json_encode(['id' => $id, 'message' => $resultaat['message']])
+            );
+
+            $csrfToken = $this->genereerCsrfToken();
+            $flash     = [
+                'type'    => 'error',
+                'bericht' => 'Medewerkergegevens zijn niet bijgewerkt',
+                'errors'  => ['specialisatie' => $resultaat['message']],
+            ];
+
+            $medewerker['Specialisatie'] = $specialisatie;
+            $medewerker['Geboortedatum'] = $geboortedatum;
+            $medewerker['ContactEmail']  = $contactEmail;
+            $medewerker['Straatnaam']    = $straatnaam;
+            $medewerker['Huisnummer']    = $huisnummer;
+            $medewerker['Toevoeging']    = $toevoeging;
+            $medewerker['Postcode']      = $postcode;
+            $medewerker['Plaats']        = $plaats;
+            $medewerker['Mobiel']        = $mobiel;
+            $medewerker['Opmerking']     = $opmerking;
+
+            $this->view('medewerkers/wijzigen', compact('csrfToken', 'flash', 'medewerker', 'specialisaties'));
+            return;
+        }
+
+        // ── Succes ───────────────────────────────────────────────────
+        $this->medewerkerModel->logTechnischeActie(
+            'INFO', 'MedewerkerController',
+            'Medewerkergegevens bijgewerkt',
+            json_encode(['id' => $id, 'specialisatie' => $specialisatie])
+        );
+
+        $this->setFlash('success', 'Medewerkergegevens bijgewerkt');
+        $this->redirect('/medewerkers/detail?id=' . $id);
     }
 }

@@ -36,6 +36,8 @@ return [
     // Medewerkerbeheer (alleen ingelogde medewerkers/eigenaar)
     'GET /medewerkers'              => ['MedewerkerController', 'index'],
     'GET /medewerkers/detail'       => ['MedewerkerController', 'detail'],
+    'GET /medewerkers/wijzigen'     => ['MedewerkerController', 'wijzigenForm'],
+    'POST /medewerkers/wijzigen'    => ['MedewerkerController', 'wijzigen'],
 
     // Productenbeheer (alleen ingelogde medewerkers/eigenaar)
     'GET /producten'                => ['ProductController', 'index'],
