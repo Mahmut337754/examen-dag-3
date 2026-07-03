@@ -263,9 +263,86 @@ INSERT INTO TechnischeLog (LogType, Module, Actie, Details, UserId, IpAdres) VAL
 ('INFO', 'AuthController', 'Gebruiker ingelogd', '{"email":"lisa@kniploket.nl","rol":"eigenaar"}', 1, '127.0.0.1'),
 ('ERROR', 'Database', 'Connectie mislukt', '{"error":"Connection refused","host":"127.0.0.1"}', NULL, '127.0.0.1');
 
--- ============================================================
--- VERIFICATIE QUERIES
--- ============================================================
+-- ------------------------------------------------------------
+-- Stored Procedure: sp_UpdateMedewerkerGegevens
+-- Beschrijving: Wijzigt medewerkergegevens en bijbehorende contactgegevens
+-- Validatie: minderjarige (<18) mag geen specialisatie 'Permanent' krijgen
+-- ------------------------------------------------------------
+DROP PROCEDURE IF EXISTS sp_UpdateMedewerkerGegevens;
+DELIMITER $$
+CREATE PROCEDURE sp_UpdateMedewerkerGegevens(
+    IN  p_medewerker_id  INT,
+    IN  p_specialisatie  VARCHAR(100),
+    IN  p_geboortedatum  DATE,
+    IN  p_contact_email  VARCHAR(255),
+    IN  p_straatnaam     VARCHAR(255),
+    IN  p_huisnummer     VARCHAR(20),
+    IN  p_toevoeging     VARCHAR(20),
+    IN  p_postcode       VARCHAR(10),
+    IN  p_plaats         VARCHAR(100),
+    IN  p_mobiel         VARCHAR(20),
+    IN  p_opmerking      VARCHAR(255),
+    OUT p_success        BOOLEAN,
+    OUT p_message        VARCHAR(500)
+)
+BEGIN
+    DECLARE v_contact_id INT;
+    DECLARE v_leeftijd   INT;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SET p_success = FALSE;
+        SET p_message = 'Database fout bij het wijzigen van medewerkergegevens';
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+
+    -- Bereken leeftijd op basis van geboortedatum
+    SET v_leeftijd = TIMESTAMPDIFF(YEAR, p_geboortedatum, CURDATE());
+
+    -- Validatie: minderjarige mag geen specialisatie 'Permanent' krijgen
+    IF v_leeftijd < 18 AND p_specialisatie = 'Permanent' THEN
+        SET p_success = FALSE;
+        SET p_message = 'Minderjarige medewerkers mogen geen specialisatie Permanent toegewezen krijgen vanwege het werken met gevaarlijke stoffen en chemicaliën.';
+        ROLLBACK;
+    ELSE
+        -- Haal ContactId op voor deze medewerker
+        SELECT c.Id INTO v_contact_id
+        FROM Contact c
+        INNER JOIN MedewerkerPerContact mpc ON mpc.ContactId = c.Id
+        WHERE mpc.MedewerkerId = p_medewerker_id AND mpc.IsActief = 1 AND c.IsActief = 1
+        LIMIT 1;
+
+        -- Update Medewerker
+        UPDATE Medewerker
+        SET Specialisatie  = p_specialisatie,
+            Geboortedatum  = p_geboortedatum,
+            Opmerking      = p_opmerking,
+            DatumGewijzigd = CURRENT_TIMESTAMP(6)
+        WHERE Id = p_medewerker_id;
+
+        -- Update Contact indien gevonden
+        IF v_contact_id IS NOT NULL THEN
+            UPDATE Contact
+            SET Email          = p_contact_email,
+                Straatnaam     = p_straatnaam,
+                Huisnummer     = p_huisnummer,
+                Toevoeging     = p_toevoeging,
+                Postcode       = p_postcode,
+                Plaats         = p_plaats,
+                Mobiel         = p_mobiel,
+                DatumGewijzigd = CURRENT_TIMESTAMP(6)
+            WHERE Id = v_contact_id;
+        END IF;
+
+        SET p_success = TRUE;
+        SET p_message = 'Medewerkergegevens succesvol bijgewerkt';
+        COMMIT;
+    END IF;
+END$$
+DELIMITER ;
+
+
 
 -- Controleer of stored procedures zijn aangemaakt
 SHOW PROCEDURE STATUS WHERE Db = 'kniploket_tiko';
