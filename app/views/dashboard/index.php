@@ -1,81 +1,134 @@
-<div style="padding: 2rem 0;">
+<?php
+$rol      = htmlspecialchars(ucfirst($_SESSION['gebruiker_rol']  ?? ''), ENT_QUOTES, 'UTF-8');
+$naam     = htmlspecialchars($_SESSION['gebruiker_naam'] ?? '', ENT_QUOTES, 'UTF-8');
+?>
+<style>
+    body { background:#f0f0f0; }
 
-    <!-- Welkom header -->
-    <div class="mb-4">
-        <h3 class="fw-semibold mb-1">Goedendag, <?= htmlspecialchars($gebruikerNaam, ENT_QUOTES, 'UTF-8') ?> 👋</h3>
-        <p class="text-muted mb-0" style="font-size:.9rem;">
-            <?= strftime('%A %d %B %Y') ?? date('d-m-Y') ?>
-            &nbsp;·&nbsp; <?= htmlspecialchars(ucfirst($gebruikerRol), ENT_QUOTES, 'UTF-8') ?>
-        </p>
+    .db-badge {
+        display:inline-block;
+        background:#e8b800; color:#fff;
+        font-size:.72rem; font-weight:700;
+        padding:.18rem .65rem; border-radius:.25rem;
+        letter-spacing:.5px; text-transform:uppercase;
+        margin-bottom:.6rem;
+    }
+    .db-h1 {
+        font-size:1.75rem; font-weight:700;
+        color:#1a1a1a; margin-bottom:.15rem;
+    }
+    .db-sub {
+        font-size:.88rem; color:#555; margin-bottom:1.5rem;
+    }
+    .db-breadcrumb {
+        font-size:.82rem; color:#888; margin-bottom:1.4rem;
+    }
+
+    /* Kaarten grid */
+    .db-grid {
+        display:grid;
+        grid-template-columns:repeat(4, 1fr);
+        gap:1rem;
+    }
+    @media (max-width:900px) { .db-grid { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:540px) { .db-grid { grid-template-columns:1fr; } }
+
+    .db-card {
+        background:#fff;
+        border:1px solid #e0e0e0;
+        border-radius:.4rem;
+        padding:1.1rem 1.1rem 1rem;
+        display:flex;
+        flex-direction:column;
+        gap:.4rem;
+    }
+    .db-card-title {
+        font-size:.95rem; font-weight:700; color:#1a1a1a;
+    }
+    .db-card-desc {
+        font-size:.8rem; color:#666; line-height:1.4;
+        flex:1;
+    }
+    .db-btn-open {
+        display:inline-block;
+        border:1px solid #ced4da;
+        background:#fff; color:#333;
+        border-radius:.22rem;
+        padding:.22rem .75rem;
+        font-size:.79rem;
+        text-decoration:none;
+        width:fit-content;
+        margin-top:.25rem;
+        transition:background .1s;
+    }
+    .db-btn-open:hover { background:#f0f0f0; color:#333; }
+
+    .db-footer {
+        text-align:center; margin-top:3rem;
+        padding-bottom:1.5rem; font-size:.77rem; color:#aaa;
+    }
+</style>
+
+<!-- Badge + Titel -->
+<div class="db-badge">Kapsalon applicatie</div>
+<h1 class="db-h1"><?= $rol ?></h1>
+<div class="db-breadcrumb">Home</div>
+<p class="db-sub">Welkom bij Kniploket Tiko – hier regel je eenvoudig klanten, afspraken en planning voor de salon.</p>
+
+<!-- Kaarten -->
+<div class="db-grid">
+
+    <div class="db-card">
+        <div class="db-card-title">Accounts</div>
+        <div class="db-card-desc">Beheer gebruikersaccounts en roltoewijzingen.</div>
+        <a href="<?= url('/dashboard') ?>" class="db-btn-open">Openen</a>
     </div>
 
-    <!-- Snelkoppelingen -->
-    <div class="row g-3">
-
-        <div class="col-sm-6 col-lg-3">
-            <a href="<?= url('/klanten') ?>" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100" style="border-radius:.6rem;transition:box-shadow .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.13)'" onmouseout="this.style.boxShadow=''">
-                    <div class="card-body d-flex align-items-center gap-3 p-3">
-                        <div style="width:46px;height:46px;background:#fdecea;border-radius:.5rem;display:flex;align-items:center;justify-content:center;">
-                            <i class="bi bi-people-fill" style="color:#c0392b;font-size:1.3rem;"></i>
-                        </div>
-                        <div>
-                            <div class="fw-semibold text-dark" style="font-size:.95rem;">Klanten</div>
-                            <div class="text-muted" style="font-size:.78rem;">Beheer klantenlijst</div>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-sm-6 col-lg-3">
-            <a href="<?= url('/medewerkers') ?>" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100" style="border-radius:.6rem;transition:box-shadow .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.13)'" onmouseout="this.style.boxShadow=''">
-                    <div class="card-body d-flex align-items-center gap-3 p-3">
-                        <div style="width:46px;height:46px;background:#eaf2fb;border-radius:.5rem;display:flex;align-items:center;justify-content:center;">
-                            <i class="bi bi-person-badge-fill" style="color:#2471a3;font-size:1.3rem;"></i>
-                        </div>
-                        <div>
-                            <div class="fw-semibold text-dark" style="font-size:.95rem;">Medewerkers</div>
-                            <div class="text-muted" style="font-size:.78rem;">Personeel overzicht</div>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-sm-6 col-lg-3">
-            <a href="<?= url('/afspraken') ?>" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100" style="border-radius:.6rem;transition:box-shadow .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.13)'" onmouseout="this.style.boxShadow=''">
-                    <div class="card-body d-flex align-items-center gap-3 p-3">
-                        <div style="width:46px;height:46px;background:#eafaf1;border-radius:.5rem;display:flex;align-items:center;justify-content:center;">
-                            <i class="bi bi-calendar-check-fill" style="color:#1e8449;font-size:1.3rem;"></i>
-                        </div>
-                        <div>
-                            <div class="fw-semibold text-dark" style="font-size:.95rem;">Afspraken</div>
-                            <div class="text-muted" style="font-size:.78rem;">Planning bekijken</div>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-sm-6 col-lg-3">
-            <a href="<?= url('/producten') ?>" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100" style="border-radius:.6rem;transition:box-shadow .2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.13)'" onmouseout="this.style.boxShadow=''">
-                    <div class="card-body d-flex align-items-center gap-3 p-3">
-                        <div style="width:46px;height:46px;background:#fef9e7;border-radius:.5rem;display:flex;align-items:center;justify-content:center;">
-                            <i class="bi bi-box-seam-fill" style="color:#d4ac0d;font-size:1.3rem;"></i>
-                        </div>
-                        <div>
-                            <div class="fw-semibold text-dark" style="font-size:.95rem;">Producten</div>
-                            <div class="text-muted" style="font-size:.78rem;">Voorraad beheren</div>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
+    <div class="db-card">
+        <div class="db-card-title">Medewerkers</div>
+        <div class="db-card-desc">Overzicht van medewerkers en hun basisgegevens.</div>
+        <a href="<?= url('/medewerkers') ?>" class="db-btn-open">Openen</a>
     </div>
 
+    <div class="db-card">
+        <div class="db-card-title">Beschikbaarheid</div>
+        <div class="db-card-desc">Bekijk de beschikbaarheid van medewerkers per dag en tijd.</div>
+        <a href="<?= url('/beschikbaarheid') ?>" class="db-btn-open">Openen</a>
+    </div>
+
+    <div class="db-card">
+        <div class="db-card-title">Klanten</div>
+        <div class="db-card-desc">Bekijk en filter klantgegevens op postcode en contactinformatie.</div>
+        <a href="<?= url('/klanten') ?>" class="db-btn-open">Openen</a>
+    </div>
+
+    <div class="db-card">
+        <div class="db-card-title">Afspraken</div>
+        <div class="db-card-desc">Plan, bekijk en beheer afspraken met status en tijd.</div>
+        <a href="<?= url('/afspraken') ?>" class="db-btn-open">Openen</a>
+    </div>
+
+    <div class="db-card">
+        <div class="db-card-title">Behandelingen</div>
+        <div class="db-card-desc">Overzicht van behandelingen, duur en prijsinformatie.</div>
+        <a href="<?= url('/behandelingen') ?>" class="db-btn-open">Openen</a>
+    </div>
+
+    <div class="db-card">
+        <div class="db-card-title">Producten</div>
+        <div class="db-card-desc">Bekijk en beheer producten binnen het assortiment.</div>
+        <a href="<?= url('/producten') ?>" class="db-btn-open">Openen</a>
+    </div>
+
+    <div class="db-card">
+        <div class="db-card-title">Bestellingen</div>
+        <div class="db-card-desc">Bekijk en beheer klantbestellingen en bestelstatus.</div>
+        <a href="<?= url('/bestellingen') ?>" class="db-btn-open">Openen</a>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<div class="db-footer">
+    © 2026 Kniploket Tiko – Alle rechten voorbehouden
 </div>

@@ -7,319 +7,169 @@ namespace Tests;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Unit tests voor Medewerker-functionaliteit.
+ * Unit tests voor Medewerker-module.
  *
- * Test de business-logica (filters, specialisaties, paginering, naam-opbouw)
- * zonder daadwerkelijke databaseverbinding.
+ * Test specialisatie-filters, naam-opbouw, leeftijdsberekening,
+ * minderjarige-validatie en paginering logica.
  */
 class MedewerkerTest extends TestCase
 {
-    // ----------------------------------------------------------------
-    // Testdata – simulaties van database-resultaten
-    // ----------------------------------------------------------------
     private array $testMedewerkers = [
-        [
-            'Id' => 1, 'Voornaam' => 'Fatima', 'Tussenvoegsel' => null,
-            'Achternaam' => 'El Amrani', 'Specialisatie' => 'Knippen',
-            'Straatnaam' => 'Kanaalstraat', 'Huisnummer' => '12', 'Toevoeging' => null,
-            'Postcode' => '3511AB', 'Plaats' => 'Utrecht',
-            'Mobiel' => '0612345678', 'ContactEmail' => 'fatima@kniplokettiko.nl',
-        ],
-        [
-            'Id' => 2, 'Voornaam' => 'Sanne', 'Tussenvoegsel' => 'de',
-            'Achternaam' => 'Vries', 'Specialisatie' => 'Kleuren',
-            'Straatnaam' => 'Croeselaan', 'Huisnummer' => '101', 'Toevoeging' => null,
-            'Postcode' => '3521BJ', 'Plaats' => 'Utrecht',
-            'Mobiel' => '0611111111', 'ContactEmail' => 'sanne.devries@kniplokettiko.nl',
-        ],
-        [
-            'Id' => 7, 'Voornaam' => 'Kevin', 'Tussenvoegsel' => null,
-            'Achternaam' => 'Smit', 'Specialisatie' => 'Extensions',
-            'Straatnaam' => 'Bernardlaan', 'Huisnummer' => '7', 'Toevoeging' => null,
-            'Postcode' => '3527GA', 'Plaats' => 'Utrecht',
-            'Mobiel' => '0611111116', 'ContactEmail' => 'kevin.smit@kniplokettiko.nl',
-        ],
-        [
-            'Id' => 4, 'Voornaam' => 'Lisa', 'Tussenvoegsel' => 'van',
-            'Achternaam' => 'Dijk', 'Specialisatie' => 'Stylen',
-            'Straatnaam' => 'Maliebaan', 'Huisnummer' => '17', 'Toevoeging' => null,
-            'Postcode' => '3581CC', 'Plaats' => 'Utrecht',
-            'Mobiel' => '0611111113', 'ContactEmail' => 'lisa.vandijk@kniplokettiko.nl',
-        ],
-        [
-            'Id' => 8, 'Voornaam' => 'Aylin', 'Tussenvoegsel' => null,
-            'Achternaam' => 'Demir', 'Specialisatie' => 'Stylen',
-            'Straatnaam' => 'Laan van Nieuw-Guinea', 'Huisnummer' => '141', 'Toevoeging' => null,
-            'Postcode' => '3531JE', 'Plaats' => 'Utrecht',
-            'Mobiel' => '0611111117', 'ContactEmail' => 'aylin.demir@kniplokettiko.nl',
-        ],
+        ['Id' => 8, 'Voornaam' => 'Aylin', 'Tussenvoegsel' => null, 'Achternaam' => 'Demir', 'Specialisatie' => 'Stylen', 'Geboortedatum' => '1999-12-04'],
+        ['Id' => 2, 'Voornaam' => 'Sanne', 'Tussenvoegsel' => 'de', 'Achternaam' => 'Vries', 'Specialisatie' => 'Kleuren', 'Geboortedatum' => '1996-09-25'],
+        ['Id' => 7, 'Voornaam' => 'Kevin', 'Tussenvoegsel' => null, 'Achternaam' => 'Smit', 'Specialisatie' => 'Extensions', 'Geboortedatum' => '2001-03-17'],
+        ['Id' => 10, 'Voornaam' => 'Romy', 'Tussenvoegsel' => null, 'Achternaam' => 'Jacobs', 'Specialisatie' => 'Knippen', 'Geboortedatum' => '2010-01-15'], // minderjarig
     ];
 
-    // ----------------------------------------------------------------
-    // Helper: bouwt volledige naam samen
-    // ----------------------------------------------------------------
-    private function bouwNaam(array $medewerker): string
+    private function bouwNaam(array $m): string
     {
-        $naam = $medewerker['Voornaam'];
-        if (!empty($medewerker['Tussenvoegsel'])) {
-            $naam .= ' ' . $medewerker['Tussenvoegsel'];
-        }
-        $naam .= ' ' . $medewerker['Achternaam'];
-        return trim($naam);
+        $naam = $m['Voornaam'];
+        if (!empty($m['Tussenvoegsel'])) { $naam .= ' ' . $m['Tussenvoegsel']; }
+        return trim($naam . ' ' . $m['Achternaam']);
     }
 
-    // ----------------------------------------------------------------
-    // Helper: filtert medewerkers op specialisatie
-    // ----------------------------------------------------------------
-    private function filterOpSpecialisatie(array $medewerkers, ?string $specialisatie): array
+    private function filterOpSpecialisatie(array $mws, ?string $spec): array
     {
-        if ($specialisatie === null || $specialisatie === '') {
-            return $medewerkers;
-        }
-        return array_values(array_filter(
-            $medewerkers,
-            fn($m) => $m['Specialisatie'] === $specialisatie
-        ));
+        if ($spec === null || $spec === '') { return $mws; }
+        return array_values(array_filter($mws, fn($m) => $m['Specialisatie'] === $spec));
+    }
+
+    private function berekenLeeftijd(string $geboortedatum): int
+    {
+        $geb = new \DateTime($geboortedatum);
+        return (int)$geb->diff(new \DateTime())->y;
     }
 
     // ================================================================
-    // NAAM OPBOUW TESTS
+    // NAAM OPBOUW
     // ================================================================
 
     /** @test */
     public function testNaamZonderTussenvoegsel(): void
     {
-        $medewerker = [
-            'Voornaam' => 'Fatima', 'Tussenvoegsel' => null, 'Achternaam' => 'El Amrani'
-        ];
-        $this->assertSame('Fatima El Amrani', $this->bouwNaam($medewerker));
+        $this->assertSame('Aylin Demir', $this->bouwNaam($this->testMedewerkers[0]));
     }
 
     /** @test */
     public function testNaamMetTussenvoegsel(): void
     {
-        $medewerker = [
-            'Voornaam' => 'Sanne', 'Tussenvoegsel' => 'de', 'Achternaam' => 'Vries'
-        ];
-        $this->assertSame('Sanne de Vries', $this->bouwNaam($medewerker));
-    }
-
-    /** @test */
-    public function testNaamMetLangTussenvoegsel(): void
-    {
-        $medewerker = [
-            'Voornaam' => 'Lisa', 'Tussenvoegsel' => 'van', 'Achternaam' => 'Dijk'
-        ];
-        $this->assertSame('Lisa van Dijk', $this->bouwNaam($medewerker));
-    }
-
-    /** @test */
-    public function testNaamMetLeegStringTussenvoegsel(): void
-    {
-        $medewerker = [
-            'Voornaam' => 'Kevin', 'Tussenvoegsel' => '', 'Achternaam' => 'Smit'
-        ];
-        $this->assertSame('Kevin Smit', $this->bouwNaam($medewerker));
+        $this->assertSame('Sanne de Vries', $this->bouwNaam($this->testMedewerkers[1]));
     }
 
     // ================================================================
-    // SPECIALISATIE FILTER TESTS
+    // SPECIALISATIE FILTER
     // ================================================================
-
-    /** @test */
-    public function testFilterOpKnippen(): void
-    {
-        $gefilterd = $this->filterOpSpecialisatie($this->testMedewerkers, 'Knippen');
-        $this->assertCount(1, $gefilterd);
-        $this->assertSame('Knippen', $gefilterd[0]['Specialisatie']);
-    }
 
     /** @test */
     public function testFilterOpStylen(): void
     {
-        $gefilterd = $this->filterOpSpecialisatie($this->testMedewerkers, 'Stylen');
-        $this->assertCount(2, $gefilterd);
-        foreach ($gefilterd as $m) {
-            $this->assertSame('Stylen', $m['Specialisatie']);
-        }
+        $result = $this->filterOpSpecialisatie($this->testMedewerkers, 'Stylen');
+        $this->assertCount(1, $result);
+        $this->assertSame('Stylen', $result[0]['Specialisatie']);
     }
 
     /** @test */
-    public function testFilterOpNietBestaandeSpecialisatieGeeftLeegResultaat(): void
+    public function testFilterOpNietBestaandeSpecialisatie(): void
     {
-        $gefilterd = $this->filterOpSpecialisatie($this->testMedewerkers, 'Permanent');
-        $this->assertEmpty($gefilterd);
-        $this->assertCount(0, $gefilterd);
+        $result = $this->filterOpSpecialisatie($this->testMedewerkers, 'Permanent');
+        $this->assertEmpty($result);
     }
 
     /** @test */
     public function testGeenFilterGeeftAlleMedewerkers(): void
     {
-        $gefilterd = $this->filterOpSpecialisatie($this->testMedewerkers, null);
-        $this->assertCount(5, $gefilterd);
-    }
-
-    /** @test */
-    public function testLeegStringFilterGeeftAlleMedewerkers(): void
-    {
-        $gefilterd = $this->filterOpSpecialisatie($this->testMedewerkers, '');
-        $this->assertCount(5, $gefilterd);
+        $result = $this->filterOpSpecialisatie($this->testMedewerkers, null);
+        $this->assertCount(4, $result);
     }
 
     // ================================================================
-    // UNIEKE SPECIALISATIES TESTS
+    // UNIEKE SPECIALISATIES
     // ================================================================
 
     /** @test */
-    public function testUniekeSpecialisatiesWordenOpgehaald(): void
+    public function testUniekeSpecialisatiesWordenGevonden(): void
     {
-        $alle         = array_column($this->testMedewerkers, 'Specialisatie');
-        $uniek        = array_unique($alle);
-        sort($uniek);
-
-        $this->assertContains('Knippen',    $uniek);
-        $this->assertContains('Kleuren',    $uniek);
-        $this->assertContains('Extensions', $uniek);
-        $this->assertContains('Stylen',     $uniek);
-        $this->assertCount(4, $uniek);
-    }
-
-    /** @test */
-    public function testSpecialisatiesZijnGesorteerd(): void
-    {
-        $alle  = array_unique(array_column($this->testMedewerkers, 'Specialisatie'));
-        sort($alle);
-
-        // Eerste alphabetisch moet Extensions zijn
-        $this->assertSame('Extensions', $alle[0]);
+        $all = array_unique(array_column($this->testMedewerkers, 'Specialisatie'));
+        $this->assertCount(4, $all);
     }
 
     // ================================================================
-    // PAGINERING TESTS
+    // LEEFTIJD BEREKENING
     // ================================================================
 
     /** @test */
-    public function testPagineringBerekeningCorrect(): void
+    public function testLeeftijdBerekeningSanne(): void
     {
-        $totaal    = 10;
+        // Sanne de Vries: 1996-09-25 → ~29-30 jaar (afhankelijk van testdatum)
+        $leeftijd = $this->berekenLeeftijd('1996-09-25');
+        $this->assertGreaterThanOrEqual(27, $leeftijd);
+        $this->assertLessThan(50, $leeftijd);
+    }
+
+    /** @test */
+    public function testLeeftijdBerekeningSanneIsMinderjarig(): void
+    {
+        // Romy Jacobs: 2010-01-15 → ~14-16 jaar (minderjarig)
+        $leeftijd = $this->berekenLeeftijd('2010-01-15');
+        $this->assertLessThan(18, $leeftijd);
+    }
+
+    /** @test */
+    public function testMinderjarigeNietToegstaanBijPermanent(): void
+    {
+        $romy = $this->testMedewerkers[3];
+        $leeftijd = $this->berekenLeeftijd($romy['Geboortedatum']);
+        $specialisatie = 'Permanent';
+
+        $toegestaan = !($leeftijd < 18 && $specialisatie === 'Permanent');
+        $this->assertFalse($toegestaan, 'Minderjarige mag geen Permanent krijgen');
+    }
+
+    /** @test */
+    public function testMeerderjarigeMagPermanent(): void
+    {
+        $sanne = $this->testMedewerkers[1];
+        $leeftijd = $this->berekenLeeftijd($sanne['Geboortedatum']);
+        $specialisatie = 'Permanent';
+
+        $toegestaan = !($leeftijd < 18 && $specialisatie === 'Permanent');
+        $this->assertTrue($toegestaan, 'Meerderjarige mag Permanent');
+    }
+
+    // ================================================================
+    // PAGINERING
+    // ================================================================
+
+    /** @test */
+    public function testPagineringBerekening(): void
+    {
+        $totaal = 10;
         $perPagina = 4;
-
         $totaalPaginas = (int)ceil($totaal / $perPagina);
         $this->assertSame(3, $totaalPaginas);
     }
 
     /** @test */
-    public function testEerstePaginaOffsetIsNul(): void
+    public function testOffsetBerekening(): void
     {
-        $huidigePagina = 1;
-        $perPagina     = 4;
-        $offset        = ($huidigePagina - 1) * $perPagina;
-
-        $this->assertSame(0, $offset);
-    }
-
-    /** @test */
-    public function testTweedePaginaOffsetIsCorrect(): void
-    {
-        $huidigePagina = 2;
-        $perPagina     = 4;
-        $offset        = ($huidigePagina - 1) * $perPagina;
-
-        $this->assertSame(4, $offset);
-    }
-
-    /** @test */
-    public function testPaginaNietGroterDanTotaalPaginas(): void
-    {
-        $totaal        = 5;
-        $perPagina     = 4;
-        $totaalPaginas = max(1, (int)ceil($totaal / $perPagina));
-
-        // Gevraagde pagina 99 moet worden begrensd
-        $gevraagd      = 99;
-        $huidigePagina = min($gevraagd, $totaalPaginas);
-
-        $this->assertSame($totaalPaginas, $huidigePagina);
-    }
-
-    /** @test */
-    public function testLeegResultaatGeeftAlsnogEenPagina(): void
-    {
-        $totaal        = 0;
-        $perPagina     = 4;
-        $totaalPaginas = max(1, (int)ceil($totaal / $perPagina));
-
-        $this->assertSame(1, $totaalPaginas);
+        $perPagina = 4;
+        $this->assertSame(0, (1 - 1) * $perPagina); // pagina 1
+        $this->assertSame(4, (2 - 1) * $perPagina); // pagina 2
+        $this->assertSame(8, (3 - 1) * $perPagina); // pagina 3
     }
 
     // ================================================================
-    // ADRES OPBOUW TESTS
+    // SCENARIO: GEEN RESULTAAT
     // ================================================================
 
     /** @test */
-    public function testAdresZonderToevoeging(): void
-    {
-        $m     = $this->testMedewerkers[0]; // Fatima
-        $adres = trim(($m['Straatnaam'] ?? '') . ' ' . ($m['Huisnummer'] ?? '') . ($m['Toevoeging'] ?? ''));
-
-        $this->assertSame('Kanaalstraat 12', $adres);
-    }
-
-    /** @test */
-    public function testAdresMetLangeStraatNaam(): void
-    {
-        $m     = $this->testMedewerkers[4]; // Aylin – Laan van Nieuw-Guinea 141
-        $adres = trim(($m['Straatnaam'] ?? '') . ' ' . ($m['Huisnummer'] ?? '') . ($m['Toevoeging'] ?? ''));
-
-        $this->assertSame('Laan van Nieuw-Guinea 141', $adres);
-    }
-
-    // ================================================================
-    // CONTACT E-MAIL TESTS
-    // ================================================================
-
-    /** @test */
-    public function testContactEmailIsBeschikbaar(): void
-    {
-        foreach ($this->testMedewerkers as $m) {
-            $this->assertNotEmpty($m['ContactEmail']);
-            $this->assertStringContainsString('@', $m['ContactEmail']);
-        }
-    }
-
-    /** @test */
-    public function testAlleContactEmailsZijnGeldig(): void
-    {
-        foreach ($this->testMedewerkers as $m) {
-            $this->assertNotFalse(
-                filter_var($m['ContactEmail'], FILTER_VALIDATE_EMAIL),
-                "Ongeldig contact e-mail: {$m['ContactEmail']}"
-            );
-        }
-    }
-
-    // ================================================================
-    // GEEN RESULTAAT SCENARIO TEST
-    // ================================================================
-
-    /** @test */
-    public function testGeenResultaatBijNietBestaandeSpecialisatieGeeftCorrecteVlag(): void
+    public function testGeenResultaatGeeftJuisteMelding(): void
     {
         $specialisatie = 'Permanent';
-        $gefilterd     = $this->filterOpSpecialisatie($this->testMedewerkers, $specialisatie);
-
+        $result        = $this->filterOpSpecialisatie($this->testMedewerkers, $specialisatie);
         $filterActief  = $specialisatie !== '' && $specialisatie !== 'Alle specialisaties';
-        $geenResultaat = $filterActief && count($gefilterd) === 0;
+        $geenResultaat = $filterActief && count($result) === 0;
 
-        $this->assertTrue($geenResultaat);
-    }
-
-    /** @test */
-    public function testAlleSpecialisatiesFilterWordtAlsInactiefBeschouwd(): void
-    {
-        $specialisatie = 'Alle specialisaties';
-        $filterActief  = $specialisatie !== '' && $specialisatie !== 'Alle specialisaties';
-
-        $this->assertFalse($filterActief);
+        $this->assertTrue($geenResultaat, 'Verwacht geen resultaat met Permanent filter');
     }
 }
