@@ -214,23 +214,34 @@ class KlantController extends Controller
             return;
         }
 
-        // Valideer email uniciteit (uitgezonderd de huidige contact)
-        if ($this->klantModel->emailBestaatAl($contactEmail, $contactId)) {
+        // ── Email uniciteit en opslaan worden afgehandeld door de stored procedure ──
+        // Voer de wijziging door via stored procedure
+        $resultaat = $this->klantModel->wijzigKlant($id, [
+            'contact_email'  => $contactEmail,
+            'straatnaam'     => $straatnaam,
+            'huisnummer'     => $huisnummer,
+            'toevoeging'     => $toevoeging,
+            'postcode'       => $postcode,
+            'plaats'         => $plaats,
+            'mobiel'         => $mobiel,
+            'bijzonderheden' => $bijzonderheden,
+        ]);
+
+        // Stored procedure kan ook email-conflict terugmelden
+        if (!$resultaat['success']) {
             $this->klantModel->logTechnischeActie(
-                'WARNING',
-                'KlantController',
-                'Poging tot wijzigen met bestaand e-mailadres',
-                json_encode(['klant_id' => $id, 'email' => $contactEmail])
+                'WARNING', 'KlantController',
+                'Klant wijzigen geweigerd door stored procedure',
+                json_encode(['klant_id' => $id, 'message' => $resultaat['message']])
             );
 
             $csrfToken = $this->genereerCsrfToken();
             $flash     = [
                 'type'    => 'error',
                 'bericht' => 'Klantgegevens zijn niet bijgewerkt',
-                'errors'  => ['contact_email' => 'Het e-mailadres is al in gebruik']
+                'errors'  => ['contact_email' => $resultaat['message']],
             ];
 
-            // Refresh klantgegevens met posted waarden voor display
             $klant['Email']          = $contactEmail;
             $klant['Straatnaam']     = $straatnaam;
             $klant['Huisnummer']     = $huisnummer;
@@ -243,18 +254,6 @@ class KlantController extends Controller
             $this->view('klanten/wijzigen', compact('csrfToken', 'flash', 'klant'));
             return;
         }
-
-        // Voer de wijziging door
-        $this->klantModel->wijzigKlant($id, [
-            'contact_email'  => $contactEmail,
-            'straatnaam'     => $straatnaam,
-            'huisnummer'     => $huisnummer,
-            'toevoeging'     => $toevoeging,
-            'postcode'       => $postcode,
-            'plaats'         => $plaats,
-            'mobiel'         => $mobiel,
-            'bijzonderheden' => $bijzonderheden,
-        ]);
 
         // Technische log
         $this->klantModel->logTechnischeActie(
