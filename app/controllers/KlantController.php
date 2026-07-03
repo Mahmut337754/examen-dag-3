@@ -24,10 +24,45 @@ class KlantController extends Controller
     public function index(): void
     {
         $this->vereisLogin();
-        $flash   = $this->getFlash();
-        $klanten = $this->klantModel->alleKlanten();
+        $flash = $this->getFlash();
 
-        $this->view('klanten/index', compact('flash', 'klanten'));
+        // Postcode filter
+        $gezochtPostcode = trim($_GET['postcode'] ?? '');
+        $filterActief    = $gezochtPostcode !== '';
+        $postcode        = $filterActief ? $gezochtPostcode : null;
+
+        // Paginering – 4 klanten per pagina (wireframe toont 4 rijen)
+        $perPagina     = 4;
+        $huidigePagina = max(1, (int)($_GET['pagina'] ?? 1));
+
+        $totaalKlanten = $this->klantModel->telKlanten($postcode);
+        $totaalPaginas = max(1, (int)ceil($totaalKlanten / $perPagina));
+        $huidigePagina = min($huidigePagina, $totaalPaginas);
+        $offset        = ($huidigePagina - 1) * $perPagina;
+
+        $klanten       = $this->klantModel->haalKlantenOp($postcode, $perPagina, $offset);
+
+        // Log de actie
+        $this->klantModel->logTechnischeActie(
+            'INFO',
+            'KlantController',
+            'Klanten overzicht bekeken',
+            json_encode([
+                'postcode' => $postcode ?? 'alle',
+                'pagina'   => $huidigePagina,
+                'totaal'   => $totaalKlanten
+            ])
+        );
+
+        $this->view('klanten/index', compact(
+            'flash',
+            'klanten',
+            'huidigePagina',
+            'totaalPaginas',
+            'totaalKlanten',
+            'gezochtPostcode',
+            'filterActief'
+        ));
     }
 
     // ----------------------------------------------------------------
@@ -91,12 +126,151 @@ class KlantController extends Controller
     }
 
     // ----------------------------------------------------------------
-    // POST /klanten/wijzigen  (stub)
+    // POST /klanten/wijzigen
     // ----------------------------------------------------------------
     public function wijzigen(): void
     {
         $this->vereisLogin();
-        $this->setFlash('success', 'Klantgegevens bijgewerkt.');
+
+        // CSRF validatie
+        if (!$this->valideerCsrfToken($_POST['csrf_token'] ?? '')) {
+            $this->setFlash('error', 'Ongeldig CSRF-token.');
+            $this->redirect('/klanten');
+        }
+
+        $id              = (int) ($_POST['id'] ?? 0);
+        $contactEmail    = trim($_POST['contact_email'] ?? '');
+        $straatnaam      = trim($_POST['straatnaam'] ?? '');
+        $huisnummer      = trim($_POST['huisnummer'] ?? '');
+        $toevoeging      = trim($_POST['toevoeging'] ?? '');
+        $postcode        = trim($_POST['postcode'] ?? '');
+        $plaats          = trim($_POST['plaats'] ?? '');
+        $mobiel          = trim($_POST['mobiel'] ?? '');
+        $bijzonderheden  = trim($_POST['bijzonderheden'] ?? '');
+
+        // Haal klant op
+        $klant = $this->klantModel->vindOpId($id);
+        if (!$klant) {
+            $this->setFlash('error', 'Klant niet gevonden.');
+            $this->redirect('/klanten');
+        }
+
+        // Haal het gekoppelde ContactId op
+        $contactId = $this->klantModel->getContactIdVoorKlant($id);
+        if (!$contactId) {
+            $this->setFlash('error', 'Contactgegevens niet gevonden.');
+            $this->redirect('/klanten/detail?id=' . $id);
+        }
+
+        // Serverside validatie
+        $validatieErrors = [];
+
+        if (empty($contactEmail)) {
+            $validatieErrors['contact_email'] = 'Contact e-mailadres is verplicht';
+        } elseif (!filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) {
+            $validatieErrors['contact_email'] = 'Voer een geldig e-mailadres in';
+        }
+        if (empty($straatnaam)) {
+            $validatieErrors['straatnaam'] = 'Straatnaam is verplicht';
+        }
+        if (empty($huisnummer)) {
+            $validatieErrors['huisnummer'] = 'Huisnummer is verplicht';
+        }
+        if (empty($postcode)) {
+            $validatieErrors['postcode'] = 'Postcode is verplicht';
+        } elseif (!preg_match('/^\d{4}\s?[A-Za-z]{2}$/', $postcode)) {
+            $validatieErrors['postcode'] = 'Voer een geldige postcode in (bijv. 3512AB)';
+        }
+        if (empty($plaats)) {
+            $validatieErrors['plaats'] = 'Plaats is verplicht';
+        }
+        if (empty($mobiel)) {
+            $validatieErrors['mobiel'] = 'Mobiel is verplicht';
+        }
+
+        if (!empty($validatieErrors)) {
+            $this->klantModel->logTechnischeActie(
+                'WARNING',
+                'KlantController',
+                'Klant wijzigen mislukt (validatie)',
+                json_encode(['klant_id' => $id, 'errors' => $validatieErrors])
+            );
+
+            $csrfToken = $this->genereerCsrfToken();
+            $flash     = [
+                'type'    => 'error',
+                'bericht' => 'Klantgegevens zijn niet bijgewerkt',
+                'errors'  => $validatieErrors
+            ];
+
+            // Overschrijf klantdata met ingevoerde waarden
+            $klant['Email']          = $contactEmail;
+            $klant['Straatnaam']     = $straatnaam;
+            $klant['Huisnummer']     = $huisnummer;
+            $klant['Toevoeging']     = $toevoeging;
+            $klant['Postcode']       = $postcode;
+            $klant['Plaats']         = $plaats;
+            $klant['Mobiel']         = $mobiel;
+            $klant['Bijzonderheden'] = $bijzonderheden;
+
+            $this->view('klanten/wijzigen', compact('csrfToken', 'flash', 'klant'));
+            return;
+        }
+
+        // Valideer email uniciteit (uitgezonderd de huidige contact)
+        if ($this->klantModel->emailBestaatAl($contactEmail, $contactId)) {
+            $this->klantModel->logTechnischeActie(
+                'WARNING',
+                'KlantController',
+                'Poging tot wijzigen met bestaand e-mailadres',
+                json_encode(['klant_id' => $id, 'email' => $contactEmail])
+            );
+
+            $csrfToken = $this->genereerCsrfToken();
+            $flash     = [
+                'type'    => 'error',
+                'bericht' => 'Klantgegevens zijn niet bijgewerkt',
+                'errors'  => ['contact_email' => 'Het e-mailadres is al in gebruik']
+            ];
+
+            // Refresh klantgegevens met posted waarden voor display
+            $klant['Email']          = $contactEmail;
+            $klant['Straatnaam']     = $straatnaam;
+            $klant['Huisnummer']     = $huisnummer;
+            $klant['Toevoeging']     = $toevoeging;
+            $klant['Postcode']       = $postcode;
+            $klant['Plaats']         = $plaats;
+            $klant['Mobiel']         = $mobiel;
+            $klant['Bijzonderheden'] = $bijzonderheden;
+
+            $this->view('klanten/wijzigen', compact('csrfToken', 'flash', 'klant'));
+            return;
+        }
+
+        // Voer de wijziging door
+        $this->klantModel->wijzigKlant($id, [
+            'contact_email'  => $contactEmail,
+            'straatnaam'     => $straatnaam,
+            'huisnummer'     => $huisnummer,
+            'toevoeging'     => $toevoeging,
+            'postcode'       => $postcode,
+            'plaats'         => $plaats,
+            'mobiel'         => $mobiel,
+            'bijzonderheden' => $bijzonderheden,
+        ]);
+
+        // Technische log
+        $this->klantModel->logTechnischeActie(
+            'INFO',
+            'KlantController',
+            'Klantgegevens bijgewerkt',
+            json_encode([
+                'klant_id'    => $id,
+                'velden'      => ['contact_email', 'straatnaam', 'huisnummer', 'postcode', 'plaats', 'mobiel'],
+            ])
+        );
+
+        $this->setFlash('success', 'Klantgegevens bijgewerkt');
         $this->redirect('/klanten');
     }
 
