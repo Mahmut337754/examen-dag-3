@@ -1,32 +1,118 @@
-<a href="<?= url('/klanten') ?>" class="btn btn-outline-secondary mb-4">
-    <i class="bi bi-arrow-left me-1"></i>Terug naar klanten
-</a>
+<?php
+$naam = htmlspecialchars(
+    $klant['Voornaam']
+    . ($klant['Tussenvoegsel'] ? ' ' . $klant['Tussenvoegsel'] : '')
+    . ' ' . $klant['Achternaam'],
+    ENT_QUOTES, 'UTF-8'
+);
+?>
+<style>
+    body { background:#f0f0f0; }
+    .kd-bc { font-size:.84rem; margin-bottom:.5rem; color:#555; }
+    .kd-bc a { color:#555; text-decoration:none; }
+    .kd-bc a:hover { text-decoration:underline; }
 
-<h1 class="mb-4">
-    <i class="bi bi-person me-2 text-primary"></i>
-    <?= htmlspecialchars($klant['Voornaam'] . ' ' . $klant['Achternaam'], ENT_QUOTES, 'UTF-8') ?>
-</h1>
+    .kd-h1 { font-size:1.45rem; font-weight:700; margin-bottom:1.25rem; }
+    .kd-h1 span { color:#c0392b; }
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <dl class="row mb-0">
-            <dt class="col-sm-3">Relatienummer</dt>
-            <dd class="col-sm-9"><?= htmlspecialchars($klant['Relatienummer'], ENT_QUOTES, 'UTF-8') ?></dd>
+    .kd-card {
+        background:#fff; border:1px solid #ddd;
+        border-radius:.35rem; overflow:hidden; max-width:600px;
+    }
+    .kd-row {
+        display:grid; grid-template-columns:160px 1fr;
+        border-bottom:1px solid #f0f0f0; font-size:.875rem;
+    }
+    .kd-row:last-child { border-bottom:none; }
+    .kd-lbl { padding:.58rem 1rem; font-weight:600; color:#333; }
+    .kd-val { padding:.58rem 1rem; color:#2c3e50; }
 
-            <dt class="col-sm-3">Voornaam</dt>
-            <dd class="col-sm-9"><?= htmlspecialchars($klant['Voornaam'], ENT_QUOTES, 'UTF-8') ?></dd>
+    .kd-actions {
+        display:flex; justify-content:flex-end;
+        gap:.5rem; padding:.85rem 0; max-width:600px;
+    }
+    .kd-btn-wij {
+        background:#c0392b; color:#fff; border:none;
+        border-radius:.25rem; padding:.42rem 1.2rem;
+        font-size:.84rem; font-weight:600; cursor:pointer;
+        text-decoration:none; display:inline-block;
+    }
+    .kd-btn-wij:hover { background:#a93226; color:#fff; }
+    .kd-btn-terug {
+        background:#fff; color:#333; border:1px solid #ced4da;
+        border-radius:.25rem; padding:.42rem 1rem;
+        font-size:.84rem; font-weight:600;
+        text-decoration:none; display:inline-block;
+    }
+    .kd-btn-terug:hover { background:#f0f0f0; color:#333; }
 
-            <dt class="col-sm-3">Tussenvoegsel</dt>
-            <dd class="col-sm-9"><?= htmlspecialchars($klant['Tussenvoegsel'] ?? '-', ENT_QUOTES, 'UTF-8') ?></dd>
+    .kd-footer { text-align:center; margin-top:3rem; padding-bottom:1.5rem; font-size:.77rem; color:#aaa; }
+</style>
 
-            <dt class="col-sm-3">Achternaam</dt>
-            <dd class="col-sm-9"><?= htmlspecialchars($klant['Achternaam'], ENT_QUOTES, 'UTF-8') ?></dd>
+<!-- Breadcrumb -->
+<div class="kd-bc">
+    <a href="<?= url('/dashboard') ?>">Home</a> /
+    <a href="<?= url('/klanten') ?>">Klanten</a> / Detail
+</div>
 
-            <dt class="col-sm-3">E-mail</dt>
-            <dd class="col-sm-9"><?= htmlspecialchars($klant['email'], ENT_QUOTES, 'UTF-8') ?></dd>
+<!-- Titel -->
+<h1 class="kd-h1"><span>Klantdetail</span> <?= $naam ?></h1>
 
-            <dt class="col-sm-3">Bijzonderheden</dt>
-            <dd class="col-sm-9"><?= htmlspecialchars($klant['Bijzonderheden'] ?? '-', ENT_QUOTES, 'UTF-8') ?></dd>
-        </dl>
+<!-- Kaart -->
+<div class="kd-card">
+    <div class="kd-row">
+        <div class="kd-lbl">Naam</div>
+        <div class="kd-val"><?= $naam ?></div>
     </div>
+    <div class="kd-row">
+        <div class="kd-lbl">Relatienummer</div>
+        <div class="kd-val"><?= htmlspecialchars($klant['Relatienummer'], ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
+    <div class="kd-row">
+        <div class="kd-lbl">Contact e-mail</div>
+        <div class="kd-val"><?= htmlspecialchars($klant['Email'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
+    <div class="kd-row">
+        <div class="kd-lbl">Account e-mail</div>
+        <div class="kd-val"><?= htmlspecialchars($klant['email'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
+    <div class="kd-row">
+        <div class="kd-lbl">Straatnaam</div>
+        <div class="kd-val"><?= htmlspecialchars($klant['Straatnaam'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
+    <div class="kd-row">
+        <div class="kd-lbl">Huisnummer</div>
+        <div class="kd-val"><?= htmlspecialchars($klant['Huisnummer'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
+    <div class="kd-row">
+        <div class="kd-lbl">Toevoeging</div>
+        <div class="kd-val"><?= htmlspecialchars($klant['Toevoeging'] ?: '-', ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
+    <div class="kd-row">
+        <div class="kd-lbl">Postcode</div>
+        <div class="kd-val"><?= htmlspecialchars($klant['Postcode'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
+    <div class="kd-row">
+        <div class="kd-lbl">Plaats</div>
+        <div class="kd-val"><?= htmlspecialchars($klant['Plaats'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
+    <div class="kd-row">
+        <div class="kd-lbl">Mobiel</div>
+        <div class="kd-val"><?= htmlspecialchars($klant['Mobiel'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
+    <div class="kd-row">
+        <div class="kd-lbl">Bijzonderheden</div>
+        <div class="kd-val"><?= htmlspecialchars($klant['Bijzonderheden'] ?: '-', ENT_QUOTES, 'UTF-8') ?></div>
+    </div>
+</div>
+
+<!-- Knoppen -->
+<div class="kd-actions">
+    <a href="<?= url('/klanten/wijzigen?id=' . (int)$klant['Id']) ?>" class="kd-btn-wij">Wijzigen</a>
+    <a href="<?= url('/klanten') ?>" class="kd-btn-terug">Terug</a>
+</div>
+
+<!-- Footer -->
+<div class="kd-footer">
+    © 2026 Kniploket Tiko – Alle rechten voorbehouden
 </div>
