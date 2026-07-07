@@ -1,124 +1,86 @@
-﻿<?php
-$naam = htmlspecialchars(
-    $klant['Voornaam']
-    . ($klant['Tussenvoegsel'] ? ' ' . $klant['Tussenvoegsel'] : '')
-    . ' ' . $klant['Achternaam'],
-    ENT_QUOTES, 'UTF-8'
-);
-?>
-<style>
-    body { background:#f0f0f0; }
-    .kd-bc { font-size:.84rem; margin-bottom:.5rem; color:#555; }
-    .kd-bc a { color:#555; text-decoration:none; }
-    .kd-bc a:hover { text-decoration:underline; }
+<div class="row justify-content-center">
+    <div class="col-lg-8">
 
-    .kd-h1 { font-size:1.45rem; font-weight:700; margin-bottom:1.25rem; }
-    .kd-h1 span { color:#c0392b; }
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <a href="<?= $base ?>/klanten" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h2 class="mb-0">
+                <i class="bi bi-person-circle me-2 text-primary"></i>
+                <?= htmlspecialchars($klant['naam'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+            </h2>
+        </div>
 
-    .kd-card {
-        background:#fff; border:1px solid #ddd;
-        border-radius:.35rem; overflow:hidden;
-        max-width:600px; width:100%;
-    }
-    .kd-row {
-        display:grid; grid-template-columns:160px 1fr;
-        border-bottom:1px solid #f0f0f0; font-size:.875rem;
-    }
-    .kd-row:last-child { border-bottom:none; }
-    .kd-lbl { padding:.58rem 1rem; font-weight:600; color:#333; }
-    .kd-val { padding:.58rem 1rem; color:#2c3e50; word-break:break-word; }
+        <!-- Klantgegevens -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-person-vcard me-2"></i>Persoonlijke gegevens
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Naam</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($klant['naam'] ?? '–', ENT_QUOTES, 'UTF-8') ?></dd>
 
-    .kd-actions {
-        display:flex; justify-content:flex-end;
-        gap:.5rem; padding:.85rem 0;
-        max-width:600px; flex-wrap:wrap;
-    }
-    .kd-btn-wij {
-        background:#c0392b; color:#fff; border:none;
-        border-radius:.25rem; padding:.42rem 1.2rem;
-        font-size:.84rem; font-weight:600; cursor:pointer;
-        text-decoration:none; display:inline-block;
-    }
-    .kd-btn-wij:hover { background:#a93226; color:#fff; }
-    .kd-btn-terug {
-        background:#fff; color:#333; border:1px solid #ced4da;
-        border-radius:.25rem; padding:.42rem 1rem;
-        font-size:.84rem; font-weight:600;
-        text-decoration:none; display:inline-block;
-    }
-    .kd-btn-terug:hover { background:#f0f0f0; color:#333; }
+                    <dt class="col-sm-4">E-mailadres</dt>
+                    <dd class="col-sm-8">
+                        <a href="mailto:<?= htmlspecialchars($klant['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                            <?= htmlspecialchars($klant['email'] ?? '–', ENT_QUOTES, 'UTF-8') ?>
+                        </a>
+                    </dd>
 
-    /* Mobile: label boven waarde ipv naast */
-    @media (max-width: 480px) {
-        .kd-row { grid-template-columns:1fr; }
-        .kd-lbl { padding:.5rem 1rem .1rem; }
-        .kd-val { padding:.1rem 1rem .5rem; }
-        .kd-actions { justify-content:stretch; }
-        .kd-btn-wij, .kd-btn-terug { flex:1; text-align:center; }
-    }
-</style>
+                    <dt class="col-sm-4">Telefoonnummer</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($klant['telefoonnummer'] ?? '–', ENT_QUOTES, 'UTF-8') ?></dd>
 
-<!-- Breadcrumb -->
-<div class="kd-bc">
-    <a href="<?= url('/dashboard') ?>">Home</a> /
-    <a href="<?= url('/klanten') ?>">Klanten</a> / Detail
-</div>
+                    <dt class="col-sm-4">Adres</dt>
+                    <dd class="col-sm-8"><?= htmlspecialchars($klant['adres'] ?? '–', ENT_QUOTES, 'UTF-8') ?></dd>
 
-<!-- Titel -->
-<h1 class="kd-h1"><span>Klantdetail</span> <?= $naam ?></h1>
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8">
+                        <?php if ($klant['is_actief']): ?>
+                            <span class="badge bg-success">Actief</span>
+                        <?php else: ?>
+                            <span class="badge bg-secondary">Inactief</span>
+                        <?php endif; ?>
+                    </dd>
+                </dl>
+            </div>
+        </div>
 
-<!-- Kaart -->
-<div class="kd-card">
-    <div class="kd-row">
-        <div class="kd-lbl">Naam</div>
-        <div class="kd-val"><?= $naam ?></div>
-    </div>
-    <div class="kd-row">
-        <div class="kd-lbl">Relatienummer</div>
-        <div class="kd-val"><?= htmlspecialchars($klant['Relatienummer'], ENT_QUOTES, 'UTF-8') ?></div>
-    </div>
-    <div class="kd-row">
-        <div class="kd-lbl">Contact e-mail</div>
-        <div class="kd-val"><?= htmlspecialchars($klant['Email'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
-    </div>
-    <div class="kd-row">
-        <div class="kd-lbl">Account e-mail</div>
-        <div class="kd-val"><?= htmlspecialchars($klant['email'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
-    </div>
-    <div class="kd-row">
-        <div class="kd-lbl">Straatnaam</div>
-        <div class="kd-val"><?= htmlspecialchars($klant['Straatnaam'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
-    </div>
-    <div class="kd-row">
-        <div class="kd-lbl">Huisnummer</div>
-        <div class="kd-val"><?= htmlspecialchars($klant['Huisnummer'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
-    </div>
-    <div class="kd-row">
-        <div class="kd-lbl">Toevoeging</div>
-        <div class="kd-val"><?= htmlspecialchars($klant['Toevoeging'] ?: '-', ENT_QUOTES, 'UTF-8') ?></div>
-    </div>
-    <div class="kd-row">
-        <div class="kd-lbl">Postcode</div>
-        <div class="kd-val"><?= htmlspecialchars($klant['Postcode'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
-    </div>
-    <div class="kd-row">
-        <div class="kd-lbl">Plaats</div>
-        <div class="kd-val"><?= htmlspecialchars($klant['Plaats'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
-    </div>
-    <div class="kd-row">
-        <div class="kd-lbl">Mobiel</div>
-        <div class="kd-val"><?= htmlspecialchars($klant['Mobiel'] ?? '-', ENT_QUOTES, 'UTF-8') ?></div>
-    </div>
-    <div class="kd-row">
-        <div class="kd-lbl">Bijzonderheden</div>
-        <div class="kd-val"><?= htmlspecialchars($klant['Bijzonderheden'] ?: '-', ENT_QUOTES, 'UTF-8') ?></div>
+        <!-- Allergieën & wensen -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <i class="bi bi-clipboard2-heart me-2 text-danger"></i>Allergieën &amp; wensen
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Allergieën</dt>
+                    <dd class="col-sm-8">
+                        <?php if (!empty($allergenen)): ?>
+                            <div class="d-flex flex-wrap gap-1">
+                                <?php foreach ($allergenen as $naam): ?>
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        <?= htmlspecialchars($naam, ENT_QUOTES, 'UTF-8') ?>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <span class="text-muted">Geen bekende allergieën</span>
+                        <?php endif; ?>
+                    </dd>
+
+                    <dt class="col-sm-4">Wensen</dt>
+                    <dd class="col-sm-8">
+                        <?php if (!empty($klant['wensen'])): ?>
+                            <?= htmlspecialchars($klant['wensen'], ENT_QUOTES, 'UTF-8') ?>
+                        <?php else: ?>
+                            <span class="text-muted">Geen wensen opgegeven</span>
+                        <?php endif; ?>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
     </div>
 </div>
-
-<!-- Knoppen -->
-<div class="kd-actions">
-    <a href="<?= url('/klanten/wijzigen?id=' . (int)$klant['Id']) ?>" class="kd-btn-wij">Wijzigen</a>
-    <a href="<?= url('/klanten') ?>" class="kd-btn-terug">Terug</a>
-</div>
-
 

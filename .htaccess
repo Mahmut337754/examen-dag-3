@@ -1,21 +1,10 @@
-Options -Indexes
-
 RewriteEngine On
-RewriteBase /
 
-# Prevent access to sensitive directories
-RewriteRule ^app/ - [F,L]
-RewriteRule ^database/ - [F,L]
-RewriteRule ^logs/ - [F,L]
-
-# If already in public directory, don't rewrite
+# Already going to /public/ — don't rewrite again
 RewriteCond %{REQUEST_URI} ^/public/
 RewriteRule ^ - [L]
 
-# If the request is for a real file or directory, don't rewrite
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
-
-# Redirect everything else to public/index.php directly (no loop)
-RewriteRule ^(.*)$ public/index.php [L,QSA]
+# Send everything else to /public/index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /public/$1 [L,QSA]

@@ -2,64 +2,123 @@
 
 ## Testaccounts
 
+Gebruik deze inloggegevens om het systeem te testen:
+
 ### 1. Eigenaar (volledige toegang)
-- **E-mail**: `eigenaar@kniplokettiko.nl`
-- **Wachtwoord**: `Admin123!`
+- **E-mail**: `lisa@kniploket.nl`
+- **Wachtwoord**: `Admin123`
 - **Rol**: eigenaar
 
-### 2. Medewerker (voorbeeld)
-- **E-mail**: `fatima@kniplokettiko.nl`
-- **Wachtwoord**: `Admin123!`
+### 2. Medewerker
+- **E-mail**: `erik@kniploket.nl`
+- **Wachtwoord**: `Medew123`
 - **Rol**: medewerker
 
-> Alle medewerkers en klanten gebruiken hetzelfde wachtwoord: `Admin123!`  
-> Het wachtwoord-hash in de database: `$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.`
+### 3. Klant (kan niet inloggen op beheerpaneel)
+- **E-mail**: `sophie@example.com`
+- **Wachtwoord**: `Klant123`
+- **Rol**: klant
+- **Let op**: Klanten loggen NIET in op het beheerpaneel.
 
 ---
 
-## Database importeren (volgorde belangrijk)
+## Installatie-instructies
 
-```sql
--- Stap 1: Basis schema + testdata
-SOURCE database/database.sql;
+### 1. Database importeren
+```bash
+# Importeer het schema en testdata
+mysql -u root -p < database/database.sql
 
--- Stap 2: Stored procedures klant
-SOURCE database/sp_klant.sql;
-
--- Stap 3: Stored procedures medewerker
-SOURCE database/sp_medewerker.sql;
-
--- Stap 4: Technische log tabel
-SOURCE database/technische_log.sql;
+# Importeer de stored procedures
+mysql -u root -p kniploket_tiko < database/procedures/sp_gebruikers.sql
+mysql -u root -p kniploket_tiko < database/procedures/sp_klanten.sql
 ```
 
-Of via phpMyAdmin: importeer de bestanden in bovenstaande volgorde.
+### 2. Database-configuratie aanpassen
+Bewerk `app/config/database.php` en pas aan:
+```php
+'host'     => '127.0.0.1',
+'username' => 'root',        // Jouw MySQL-gebruikersnaam
+'password' => '',            // Jouw MySQL-wachtwoord
+'database' => 'kniploket_tiko',
+```
+
+### 3. Webserver instellen
+- Wijs je webserver (Apache/Nginx) naar de `public/` map
+- Zorg dat `mod_rewrite` (Apache) of equivalent (Nginx) actief is
+- Voorbeeld voor Apache virtualhost:
+  ```apache
+  <VirtualHost *:80>
+      ServerName kniploket.local
+      DocumentRoot "C:/Users/mahmu/Desktop/examen/Examen/public"
+      
+      <Directory "C:/Users/mahmu/Desktop/examen/Examen/public">
+          Options Indexes FollowSymLinks
+          AllowOverride All
+          Require all granted
+      </Directory>
+  </VirtualHost>
+  ```
+
+### 4. Testen
+- Open je browser en ga naar `http://localhost/` (of je geconfigureerde domein)
+- Log in met een van de accounts hierboven
 
 ---
 
-## Webserver (WAMP virtual host)
+## Wachtwoorden wijzigen
 
-```apache
-<VirtualHost *:80>
-    ServerName examen-dag-3
-    DocumentRoot "c:/users/mahmu/desktop/examen-dag-3/examen-dag-3/public"
-    <Directory "c:/users/mahmu/desktop/examen-dag-3/examen-dag-3/public/">
-        Options +Indexes +Includes +FollowSymLinks +MultiViews
-        AllowOverride All
-        Require local
-    </Directory>
-</VirtualHost>
-```
+De huidige wachtwoorden zijn **TESTDATA**. In productie moet je:
 
-Voeg `127.0.0.1 examen-dag-3` toe aan `C:\Windows\System32\drivers\etc\hosts`.
+1. Nieuwe bcrypt-hashes genereren in PHP:
+   ```php
+   echo password_hash('jouw_nieuwe_wachtwoord', PASSWORD_BCRYPT);
+   ```
+
+2. Update de database:
+   ```sql
+   UPDATE gebruikers 
+   SET wachtwoord = '$2y$10$...' 
+   WHERE email = 'lisa@kniploket.nl';
+   ```
+
+Of gebruik de ingebouwde "Wachtwoord wijzigen"-functie na inloggen.
+
+---
+
+## Functies per rol
+
+### Eigenaar & Medewerker
+- ✅ Inloggen op beheerpaneel
+- ✅ Dashboard bekijken met statistieken
+- ✅ Klanten beheren (CRUD)
+- ✅ Wachtwoord wijzigen
+- ⏳ Producten (link aanwezig, functionaliteit volgt later)
+
+### Klant
+- ❌ Geen toegang tot beheerpaneel
+- ⏳ Toekomstige klantportaal-functionaliteit
 
 ---
 
 ## Probleemoplossing
 
-| Fout | Oplossing |
-|---|---|
-| 500 Internal Server Error | Herstart Apache via WAMP |
-| "Databaseverbinding niet beschikbaar" | Start MySQL via WAMP |
-| "Stored procedure not found" | Importeer `sp_klant.sql` en `sp_medewerker.sql` |
-| 404 bij alle pagina's | Controleer `public/.htaccess` en `mod_rewrite` |
+### "Databaseverbinding niet beschikbaar"
+- Controleer `app/config/database.php`
+- Controleer of MySQL draait
+- Controleer of database `kniploket_tiko` bestaat
+
+### "404 – Pagina niet gevonden"
+- Controleer of `.htaccess` in `public/` aanwezig is
+- Controleer of `mod_rewrite` actief is in Apache
+- Controleer of de document root naar `public/` wijst
+
+### "Ongeldige inloggegevens"
+- Controleer of je de juiste e-mail/wachtwoord gebruikt
+- Controleer of de stored procedures correct geïmporteerd zijn
+- Check `logs/app.log` voor foutmeldingen
+
+---
+
+**Ontwikkeld voor Kniploket Tiko**  
+Branch: `Feature-Klanten`

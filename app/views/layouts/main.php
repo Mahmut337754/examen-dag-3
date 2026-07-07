@@ -3,363 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kniploket Tiko</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        /* ── Reset & basis ── */
-        *, *::before, *::after { box-sizing: border-box; }
+    <title>Kniploket Tiko – Beheerpaneel</title>
 
-        html, body {
-            height: 100%;
-            margin: 0;
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --sidebar-w:    240px;
+            --sidebar-bg:   #0f172a;
+            --sidebar-hover:#1e293b;
+            --accent:       #6366f1;
+            --accent-light: #eef2ff;
+            --topbar-h:     60px;
         }
+
+        * { box-sizing: border-box; }
 
         body {
-            background: #f0f0f0;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* ══════════════════════════════════════════
-           NAVBAR
-        ══════════════════════════════════════════ */
-        .kt-nav {
-            background: #c0392b;
-            min-height: 48px;
-            padding: 0 1rem;
-            display: flex;
-            align-items: stretch;
-            position: relative;
-            z-index: 100;
-        }
-
-        /* Merk */
-        .kt-brand {
-            color: #fff;
-            font-weight: 800;
-            font-size: .95rem;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            padding-right: 1.5rem;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .kt-brand:hover { color: #fff; }
-
-        /* Nav-links (desktop) */
-        .kt-links {
-            display: flex;
-            align-items: stretch;
-            list-style: none;
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
             margin: 0;
-            padding: 0;
-            flex: 1;
-        }
-        .kt-links li a {
-            color: rgba(255,255,255,.9);
-            text-decoration: none;
-            font-size: .82rem;
-            font-weight: 500;
-            padding: 0 .75rem;
-            display: flex;
-            align-items: center;
-            height: 100%;
-            border-bottom: 3px solid transparent;
-            white-space: nowrap;
-            transition: background .15s, border-color .15s;
-        }
-        .kt-links li a:hover { background: rgba(0,0,0,.12); color: #fff; }
-        .kt-links li a.actief {
-            background: rgba(0,0,0,.18);
-            border-bottom-color: #fff;
-            color: #fff;
         }
 
-        /* Rechter blok (gebruiker + uitloggen) */
-        .kt-right {
-            display: flex;
-            align-items: center;
-            gap: .6rem;
-            margin-left: auto;
-            flex-shrink: 0;
-        }
-        .kt-user {
-            color: rgba(255,255,255,.85);
-            font-size: .8rem;
-            white-space: nowrap;
-        }
-
-        /* Uitloggen knop — subtiel, niet te donker */
-        .kt-logout {
-            background: rgba(255,255,255,.15);   /* licht wit-transparant */
-            color: #fff;
-            border: 1px solid rgba(255,255,255,.45);
-            border-radius: .25rem;
-            font-size: .78rem;
-            padding: .22rem .75rem;
-            text-decoration: none;
-            white-space: nowrap;
-            transition: background .15s;
-        }
-        .kt-logout:hover {
-            background: rgba(255,255,255,.28);
-            color: #fff;
-        }
-
-        /* ── Hamburger knop (verborgen op desktop) ── */
-        .kt-hamburger {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: .4rem .5rem;
-            margin-left: auto;
-            flex-direction: column;
-            gap: 5px;
-            align-self: center;
-        }
-        .kt-hamburger span {
-            display: block;
-            width: 22px;
-            height: 2px;
+        /* ── Topbar ── */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; height: var(--topbar-h);
             background: #fff;
-            border-radius: 2px;
-            transition: transform .25s, opacity .25s;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex; align-items: center;
+            padding: 0 1.25rem;
+            z-index: 1030;
+            gap: 1rem;
         }
-        /* Animatie: hamburger → X */
-        .kt-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-        .kt-hamburger.open span:nth-child(2) { opacity: 0; }
-        .kt-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+        .topbar-brand {
+            font-weight: 700; font-size: 1.1rem; color: var(--accent);
+            text-decoration: none; white-space: nowrap;
+        }
+        .topbar-brand i { margin-right: .4rem; }
+        .topbar-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
+        .user-chip {
+            display: flex; align-items: center; gap: .5rem;
+            padding: .35rem .75rem;
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 2rem; font-size: .85rem;
+        }
+        .user-avatar {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 700; font-size: .75rem;
+        }
 
-        /* ── Mobile dropdown menu ── */
-        .kt-mobile-menu {
+        /* ── Hamburger toggle ── */
+        .sidebar-toggle {
+            background: none; border: none; padding: .4rem;
+            cursor: pointer; color: #64748b;
+            border-radius: .375rem;
             display: none;
-            background: #a93226;       /* iets donkerder rood */
-            list-style: none;
-            margin: 0;
-            padding: .4rem 0;
-            position: absolute;
-            top: 48px;
-            left: 0;
-            right: 0;
-            z-index: 99;
-            box-shadow: 0 4px 12px rgba(0,0,0,.2);
         }
-        .kt-mobile-menu.open { display: block; }
-        .kt-mobile-menu li a {
-            display: block;
-            color: rgba(255,255,255,.9);
+        .sidebar-toggle:hover { background: #f1f5f9; }
+        @media (max-width: 991px) {
+            .sidebar-toggle { display: flex; align-items: center; justify-content: center; }
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            position: fixed; top: var(--topbar-h); left: 0;
+            width: var(--sidebar-w);
+            height: calc(100vh - var(--topbar-h));
+            background: var(--sidebar-bg);
+            overflow-y: auto;
+            padding: 1rem .75rem;
+            transition: transform .25s ease;
+            z-index: 1020;
+        }
+        @media (max-width: 991px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.4);
+            z-index: 1019;
+        }
+        .sidebar-overlay.show { display: block; }
+
+        .sidebar-section {
+            font-size: .7rem; text-transform: uppercase; letter-spacing: .08em;
+            color: #475569; font-weight: 600;
+            padding: .75rem .75rem .25rem;
+            margin-top: .5rem;
+        }
+        .sidebar-link {
+            display: flex; align-items: center; gap: .6rem;
+            padding: .6rem .75rem;
+            color: #94a3b8;
             text-decoration: none;
-            font-size: .87rem;
+            border-radius: .5rem;
+            font-size: .9rem;
             font-weight: 500;
-            padding: .55rem 1.25rem;
-            border-left: 3px solid transparent;
-            transition: background .12s;
+            transition: background .15s, color .15s;
+            margin-bottom: .15rem;
         }
-        .kt-mobile-menu li a:hover,
-        .kt-mobile-menu li a.actief {
-            background: rgba(0,0,0,.15);
-            border-left-color: #fff;
+        .sidebar-link:hover {
+            background: var(--sidebar-hover);
+            color: #e2e8f0;
+        }
+        .sidebar-link.active {
+            background: var(--accent);
             color: #fff;
         }
-        .kt-mobile-menu .kt-mobile-divider {
-            border-top: 1px solid rgba(255,255,255,.18);
-            margin: .35rem 0;
-        }
-        .kt-mobile-menu .kt-mobile-user {
-            padding: .4rem 1.25rem;
-            font-size: .78rem;
-            color: rgba(255,255,255,.65);
+        .sidebar-link .badge {
+            margin-left: auto;
+            font-size: .65rem;
         }
 
-        /* ══════════════════════════════════════════
-           RESPONSIVE BREAKPOINTS
-        ══════════════════════════════════════════ */
-        @media (max-width: 900px) {
-            .kt-links { display: none; }
-            .kt-right  { display: none; }
-            .kt-hamburger { display: flex; }
+        /* ── Main content ── */
+        .main-content {
+            margin-left: var(--sidebar-w);
+            margin-top: var(--topbar-h);
+            min-height: calc(100vh - var(--topbar-h));
+            padding: 2rem;
+            transition: margin-left .25s ease;
+        }
+        @media (max-width: 991px) {
+            .main-content { margin-left: 0; padding: 1.25rem; }
         }
 
-        /* ══════════════════════════════════════════
-           CONTENT + FOOTER (sticky bottom)
-        ══════════════════════════════════════════ */
-        .kt-wrapper {
-            flex: 1;                /* neemt alle beschikbare ruimte */
-            display: flex;
-            flex-direction: column;
+        /* ── Cards ── */
+        .stat-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: .75rem;
+            padding: 1.25rem 1.5rem;
+            transition: box-shadow .2s;
+        }
+        .stat-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+        .stat-icon {
+            width: 48px; height: 48px; border-radius: .625rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
         }
 
-        .kt-content {
-            max-width: 1200px;
-            width: 100%;
-            margin: 1.75rem auto;
-            padding: 0 1rem;
-            flex: 1;
-        }
+        /* ── Alert override ── */
+        .alert { border-radius: .75rem; border: none; }
+        .alert-success { background: #d1fae5; color: #065f46; }
+        .alert-danger  { background: #fee2e2; color: #991b1b; }
 
-        @media (max-width: 480px) {
-            .kt-content { margin: 1.1rem auto; padding: 0 .75rem; }
-        }
+        /* ── Page header ── */
+        .page-header { margin-bottom: 1.5rem; }
+        .page-header h2 { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0; }
+        .page-header p  { color: #64748b; margin: .15rem 0 0; font-size: .9rem; }
 
-        /* Footer altijd onderaan, nooit zwevend */
-        .kt-footer {
-            background: #f0f0f0;
-            text-align: center;
-            padding: 1rem;
-            font-size: .77rem;
-            color: #aaa;
-            border-top: 1px solid #e0e0e0;
-            margin-top: auto;        /* duwt footer naar beneden als content kort is */
-        }
-
-        /* Flash banner */
-        .kt-flash-wrap {
-            position: sticky;
-            top: 0;
-            z-index: 98;
-            padding: .4rem 1rem 0;
-        }
+        /* ── Card ── */
+        .card { border: 1px solid #e2e8f0; border-radius: .75rem; }
+        .card-header { border-radius: .75rem .75rem 0 0 !important; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmKi69h56ECk3jM28efF/xWv1os0X"
+            crossorigin="anonymous"></script>
 </head>
 <body>
 
-<?php
-$isIngelogd = !empty($_SESSION['gebruiker_id']);
+<!-- Overlay voor mobiele sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-if ($isIngelogd):
-    $huidig = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
-    $huidig = rtrim($huidig, '/') ?: '/';
-    $base   = defined('BASE_URL') ? BASE_URL : '';
-    if ($base && str_starts_with($huidig, $base)) {
-        $huidig = substr($huidig, strlen($base));
-    }
-    $huidig = $huidig ?: '/';
-
-    $navItems = [
-        '/dashboard'       => 'Accounts',
-        '/medewerkers'     => 'Medewerkers',
-        '/beschikbaarheid' => 'Beschikbaarheid',
-        '/klanten'         => 'Klanten',
-        '/afspraken'       => 'Afspraken',
-        '/behandelingen'   => 'Behandelingen',
-        '/producten'       => 'Producten',
-        '/bestellingen'    => 'Bestellingen',
-    ];
-
-    $gebruikerNaam = htmlspecialchars($_SESSION['gebruiker_naam'] ?? '', ENT_QUOTES, 'UTF-8');
-    $gebruikerRol  = htmlspecialchars($_SESSION['gebruiker_rol']  ?? '', ENT_QUOTES, 'UTF-8');
-?>
-
-<!-- ── Desktop navbar ── -->
-<nav class="kt-nav">
-    <a class="kt-brand" href="<?= url('/dashboard') ?>">Kniploket Tiko</a>
-
-    <!-- Desktop links -->
-    <ul class="kt-links">
-        <?php foreach ($navItems as $pad => $label):
-            $actief = str_starts_with($huidig, $pad) ? 'actief' : '';
-        ?>
-        <li><a href="<?= url($pad) ?>" class="<?= $actief ?>"><?= $label ?></a></li>
-        <?php endforeach; ?>
-    </ul>
-
-    <!-- Gebruiker + uitloggen (desktop) -->
-    <div class="kt-right">
-        <span class="kt-user"><?= $gebruikerNaam ?> (<?= $gebruikerRol ?>)</span>
-        <a href="<?= url('/logout') ?>" class="kt-logout">Uitloggen</a>
-    </div>
-
-    <!-- Hamburger (mobiel) -->
-    <button class="kt-hamburger" id="kt-hamburger" aria-label="Menu openen" aria-expanded="false">
-        <span></span><span></span><span></span>
+<!-- Topbar -->
+<header class="topbar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Menu">
+        <i class="bi bi-list fs-5"></i>
     </button>
+    <a class="topbar-brand" href="<?= $base ?>/dashboard">
+        <i class="bi bi-scissors"></i>Kniploket Tiko
+    </a>
+    <div class="topbar-right">
+        <?php if (!empty($_SESSION['gebruiker_naam'])): ?>
+        <div class="user-chip d-none d-sm-flex">
+            <div class="user-avatar">
+                <?= strtoupper(mb_substr($_SESSION['gebruiker_naam'], 0, 1)) ?>
+            </div>
+            <span class="fw-medium text-dark">
+                <?= htmlspecialchars($_SESSION['gebruiker_naam'], ENT_QUOTES, 'UTF-8') ?>
+            </span>
+            <span class="badge bg-light text-secondary border">
+                <?= htmlspecialchars($_SESSION['rol'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+            </span>
+        </div>
+        <a href="<?= $base ?>/logout" class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-box-arrow-right me-1"></i>
+            <span class="d-none d-sm-inline">Uitloggen</span>
+        </a>
+        <?php endif; ?>
+    </div>
+</header>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+    <?php
+    $huidigePad = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    $isActief = fn(string $deel): string =>
+        str_contains($huidigePad, $deel) ? 'active' : '';
+    ?>
+
+    <div class="sidebar-section">Navigatie</div>
+
+    <a href="<?= $base ?>/dashboard" class="sidebar-link <?= $isActief('/dashboard') ?>">
+        <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+    <a href="<?= $base ?>/klanten" class="sidebar-link <?= $isActief('/klanten') ?>">
+        <i class="bi bi-people"></i> Klanten
+    </a>
+    <a href="<?= $base ?>/producten" class="sidebar-link <?= $isActief('/producten') ?>">
+        <i class="bi bi-box-seam"></i> Producten
+    </a>
+
+    <div class="sidebar-section">Account</div>
+
+    <a href="<?= $base ?>/wachtwoord-wijzigen" class="sidebar-link <?= $isActief('/wachtwoord') ?>">
+        <i class="bi bi-key"></i> Wachtwoord
+    </a>
+    <a href="<?= $base ?>/logout" class="sidebar-link" style="color:#f87171;">
+        <i class="bi bi-box-arrow-right"></i> Uitloggen
+    </a>
 </nav>
 
-<!-- ── Mobile dropdown menu ── -->
-<ul class="kt-mobile-menu" id="kt-mobile-menu" role="menu">
-    <?php foreach ($navItems as $pad => $label):
-        $actief = str_starts_with($huidig, $pad) ? 'actief' : '';
-    ?>
-    <li><a href="<?= url($pad) ?>" class="<?= $actief ?>"><?= $label ?></a></li>
-    <?php endforeach; ?>
-    <li class="kt-mobile-divider"></li>
-    <li class="kt-mobile-user"><?= $gebruikerNaam ?> (<?= $gebruikerRol ?>)</li>
-    <li><a href="<?= url('/logout') ?>">Uitloggen</a></li>
-</ul>
+<!-- Hoofdinhoud -->
+<main class="main-content">
 
-<?php endif; ?>
+    <?php if (!empty($flash)): ?>
+        <div class="alert alert-<?= $flash['type'] === 'success' ? 'success' : 'danger' ?> alert-dismissible d-flex align-items-center gap-2 mb-4" role="alert">
+            <i class="bi bi-<?= $flash['type'] === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill' ?> fs-5"></i>
+            <div><?= $flash['bericht'] ?></div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
-<!-- ── Flash bericht ── -->
-<?php if (!empty($flash)): ?>
-<div class="kt-flash-wrap">
-    <div id="kt-flash-bar" class="alert alert-<?= $flash['type'] === 'success' ? 'success' : 'danger' ?> alert-dismissible fade show mb-0 shadow-sm" role="alert">
-        <?= htmlspecialchars($flash['bericht'], ENT_QUOTES, 'UTF-8') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Sluiten"></button>
-    </div>
-</div>
-<?php endif; ?>
+    <?= $inhoud ?>
 
-<!-- ── Pagina wrapper (content + footer) ── -->
-<div class="kt-wrapper">
-    <div class="kt-content">
-        <?= $inhoud ?>
-    </div>
+</main>
 
-    <!-- ── Footer altijd onderaan ── -->
-    <footer class="kt-footer">
-        © 2026 Kniploket Tiko – Alle rechten voorbehouden
-    </footer>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmKi69h56ECk3jM28efF/xWv1os0X"
+        crossorigin="anonymous"></script>
+<script src="<?= $base ?>/js/validatie.js"></script>
 <script>
-(function () {
-    // ── Flash auto-dismiss na 3 seconden ──
-    const flashBar = document.getElementById('kt-flash-bar');
-    if (flashBar) {
-        setTimeout(() => {
-            const bsAlert = bootstrap.Alert.getOrCreateInstance(flashBar);
-            bsAlert.close();
-        }, 3000);
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+// Sluit sidebar bij resize naar desktop
+window.addEventListener('resize', function () {
+    if (window.innerWidth > 991) {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('show');
     }
-
-    // ── Hamburger menu toggle ──
-    const btn  = document.getElementById('kt-hamburger');
-    const menu = document.getElementById('kt-mobile-menu');
-
-    if (btn && menu) {
-        btn.addEventListener('click', () => {
-            const isOpen = menu.classList.toggle('open');
-            btn.classList.toggle('open', isOpen);
-            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        });
-
-        // Sluit menu als je buiten klikt
-        document.addEventListener('click', (e) => {
-            if (!btn.contains(e.target) && !menu.contains(e.target)) {
-                menu.classList.remove('open');
-                btn.classList.remove('open');
-                btn.setAttribute('aria-expanded', 'false');
-            }
-        });
-
-        // Sluit menu bij navigatie (link klik)
-        menu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                menu.classList.remove('open');
-                btn.classList.remove('open');
-                btn.setAttribute('aria-expanded', 'false');
-            });
-        });
-    }
-})();
+});
 </script>
 </body>
 </html>

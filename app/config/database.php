@@ -11,7 +11,7 @@ return [
     'driver'   => 'mysql',
     'host'     => '127.0.0.1',
     'port'     => '3306',
-    'database' => 'kniploket_tiko',
+    'database' => 'kniploket_tiko1',
     'username' => 'root',
     'password' => '',
     'charset'  => 'utf8mb4',

@@ -3,301 +3,352 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
-use App\Core\Validator;
-use App\Models\KlantModel;
+use App\Core\Logger;
+use App\Models\Klant;
+use App\Models\Allergeen;
 
 /**
- * CRUD-beheer voor klanten (alleen medewerker/eigenaar).
+ * Beheert CRUD-acties voor klanten.
  */
 class KlantController extends Controller
 {
-    private KlantModel $klantModel;
+    private Klant    $klantModel;
+    private Allergeen $allegeenModel;
 
     public function __construct()
     {
         parent::__construct();
-        $this->klantModel = new KlantModel();
+        $this->klantModel    = new Klant();
+        $this->allegeenModel = new Allergeen();
+        
+        // Overschrijf logger om klanten.log te gebruiken
+        $this->logger = new Logger(dirname(__DIR__, 2) . '/logs/klanten.log');
     }
 
-    // ----------------------------------------------------------------
-    // GET /klanten
-    // ----------------------------------------------------------------
+    // -------------------------------------------------------
+    // Overzicht
+    // -------------------------------------------------------
+
     public function index(): void
     {
         $this->vereisLogin();
-        $flash = $this->getFlash();
-
-        // Postcode filter
-        $gezochtPostcode = trim($_GET['postcode'] ?? '');
-        $filterActief    = $gezochtPostcode !== '';
-        $postcode        = $filterActief ? $gezochtPostcode : null;
-
-        // Paginering – 4 klanten per pagina (wireframe toont 4 rijen)
-        $perPagina     = 4;
-        $huidigePagina = max(1, (int)($_GET['pagina'] ?? 1));
-
-        $totaalKlanten = $this->klantModel->telKlanten($postcode);
-        $totaalPaginas = max(1, (int)ceil($totaalKlanten / $perPagina));
-        $huidigePagina = min($huidigePagina, $totaalPaginas);
-        $offset        = ($huidigePagina - 1) * $perPagina;
-
-        $klanten       = $this->klantModel->haalKlantenOp($postcode, $perPagina, $offset);
-
-        // Log de actie
-        $this->klantModel->logTechnischeActie(
-            'INFO',
-            'KlantController',
-            'Klanten overzicht bekeken',
-            json_encode([
-                'postcode' => $postcode ?? 'alle',
-                'pagina'   => $huidigePagina,
-                'totaal'   => $totaalKlanten
-            ])
-        );
-
-        $this->view('klanten/index', compact(
-            'flash',
-            'klanten',
-            'huidigePagina',
-            'totaalPaginas',
-            'totaalKlanten',
-            'gezochtPostcode',
-            'filterActief'
-        ));
+        $klanten   = $this->klantModel->overzicht();
+        $flash     = $this->getFlash();
+        $csrfToken = $this->genereerCsrfToken();
+        $this->view('klanten/index', compact('klanten', 'flash', 'csrfToken'));
     }
 
-    // ----------------------------------------------------------------
-    // GET /klanten/detail
-    // ----------------------------------------------------------------
+    // -------------------------------------------------------
+    // Detail
+    // -------------------------------------------------------
+
     public function detail(): void
     {
         $this->vereisLogin();
+
         $id    = (int) ($_GET['id'] ?? 0);
         $klant = $this->klantModel->vindOpId($id);
 
-        if (!$klant) {
+        if ($klant === null) {
             $this->setFlash('error', 'Klant niet gevonden.');
             $this->redirect('/klanten');
         }
 
-        $this->view('klanten/detail', compact('klant'));
+        $allergenen = $this->allegeenModel->namenVanKlant($id);
+        $flash      = $this->getFlash();
+        $csrfToken  = $this->genereerCsrfToken();
+        $this->view('klanten/detail', compact('klant', 'allergenen', 'flash', 'csrfToken'));
     }
 
-    // ----------------------------------------------------------------
-    // GET /klanten/aanmaken
-    // ----------------------------------------------------------------
+    // -------------------------------------------------------
+    // Aanmaken
+    // -------------------------------------------------------
+
     public function aanmakenForm(): void
     {
         $this->vereisLogin();
-        $csrfToken = $this->genereerCsrfToken();
-        $flash     = $this->getFlash();
-        $oud       = [];
-
-        $this->view('klanten/aanmaken', compact('csrfToken', 'flash', 'oud'));
+        $csrfToken       = $this->genereerCsrfToken();
+        $flash           = $this->getFlash();
+        $oud             = $_SESSION['form_data'] ?? [];
+        $alleAllergenen  = $this->allegeenModel->alle();
+        $geselecteerd    = $oud['allergenen'] ?? [];
+        unset($_SESSION['form_data']);
+        $this->view('klanten/create', compact('csrfToken', 'flash', 'oud', 'alleAllergenen', 'geselecteerd'));
     }
 
-    // ----------------------------------------------------------------
-    // POST /klanten/aanmaken  (stub – uitbreidbaar)
-    // ----------------------------------------------------------------
     public function aanmaken(): void
     {
         $this->vereisLogin();
-        $this->setFlash('success', 'Klant aangemaakt.');
+
+        if (!$this->valideerCsrfToken($_POST['csrf_token'] ?? '')) {
+            $this->setFlash('error', 'Ongeldig verzoek (CSRF).');
+            $this->redirect('/klanten/aanmaken');
+        }
+
+        $data   = $this->haalFormDataOp();
+        $fouten = $this->valideerKlantData($data, true);
+
+        if (!empty($fouten)) {
+            $this->setFlash('error', implode('<br>', $fouten));
+            $_SESSION['form_data'] = $data;
+            $this->redirect('/klanten/aanmaken');
+        }
+
+        $resultaat = $this->klantModel->aanmaken($data);
+
+        if ($resultaat['fout'] !== '') {
+            // Geef specifieke foutmelding bij dubbel e-mailadres
+            if (str_contains($resultaat['fout'], 'E-mailadres')) {
+                $rol = $_SESSION['rol'] ?? 'medewerker';
+                $melding = ($rol === 'eigenaar' || $rol === 'medewerker')
+                    ? 'Het e-mailadres <strong>' . htmlspecialchars($data['email'], ENT_QUOTES, 'UTF-8')
+                      . '</strong> is al in gebruik door een andere gebruiker in het systeem.'
+                    : $resultaat['fout'];
+                $this->setFlash('error', $melding);
+            } else {
+                $this->setFlash('error', $resultaat['fout']);
+            }
+            $_SESSION['form_data'] = $data;
+            $this->redirect('/klanten/aanmaken');
+        }
+
+        $this->setFlash('success', 'Klant succesvol aangemaakt.');
         $this->redirect('/klanten');
     }
 
-    // ----------------------------------------------------------------
-    // GET /klanten/wijzigen
-    // ----------------------------------------------------------------
+    // -------------------------------------------------------
+    // Wijzigen
+    // -------------------------------------------------------
+
     public function wijzigenForm(): void
     {
         $this->vereisLogin();
+
         $id    = (int) ($_GET['id'] ?? 0);
         $klant = $this->klantModel->vindOpId($id);
 
-        if (!$klant) {
+        if ($klant === null) {
             $this->setFlash('error', 'Klant niet gevonden.');
             $this->redirect('/klanten');
         }
 
-        $csrfToken = $this->genereerCsrfToken();
-        $flash     = $this->getFlash();
+        $csrfToken      = $this->genereerCsrfToken();
+        $flash          = $this->getFlash();
+        $oud            = $_SESSION['form_data'] ?? [];
+        $alleAllergenen = $this->allegeenModel->alle();
+        unset($_SESSION['form_data']);
 
-        $this->view('klanten/wijzigen', compact('csrfToken', 'flash', 'klant'));
+        // Geselecteerde allergenen: uit sessie bij validatiefout, anders uit DB
+        $geselecteerd = !empty($oud)
+            ? ($oud['allergenen'] ?? [])
+            : $this->allegeenModel->vanKlant($id);
+
+        $formData = !empty($oud) ? $oud : $klant;
+
+        $this->view('klanten/edit', compact(
+            'csrfToken', 'flash', 'klant', 'formData',
+            'alleAllergenen', 'geselecteerd'
+        ));
     }
 
-    // ----------------------------------------------------------------
-    // POST /klanten/wijzigen
-    // ----------------------------------------------------------------
     public function wijzigen(): void
     {
         $this->vereisLogin();
 
-        // CSRF validatie
         if (!$this->valideerCsrfToken($_POST['csrf_token'] ?? '')) {
-            $this->setFlash('error', 'Ongeldig CSRF-token.');
+            $this->setFlash('error', 'Ongeldig verzoek (CSRF).');
             $this->redirect('/klanten');
         }
 
-        $id              = (int) ($_POST['id'] ?? 0);
-        $voornaam        = trim($_POST['voornaam'] ?? '');
-        $tussenvoegsel   = trim($_POST['tussenvoegsel'] ?? '');
-        $achternaam      = trim($_POST['achternaam'] ?? '');
-        $contactEmail    = trim($_POST['contact_email'] ?? '');
-        $straatnaam      = trim($_POST['straatnaam'] ?? '');
-        $huisnummer      = trim($_POST['huisnummer'] ?? '');
-        $toevoeging      = trim($_POST['toevoeging'] ?? '');
-        $postcode        = trim($_POST['postcode'] ?? '');
-        $plaats          = trim($_POST['plaats'] ?? '');
-        $mobiel          = trim($_POST['mobiel'] ?? '');
-        $bijzonderheden  = trim($_POST['bijzonderheden'] ?? '');
+        $id     = (int) ($_POST['id'] ?? 0);
+        $data   = $this->haalFormDataOp();
+        $fouten = $this->valideerKlantData($data, false);
 
-        // Haal klant op
-        $klant = $this->klantModel->vindOpId($id);
-        if (!$klant) {
-            $this->setFlash('error', 'Klant niet gevonden.');
-            $this->redirect('/klanten');
+        if (!empty($fouten)) {
+            $this->setFlash('error', implode('<br>', $fouten));
+            $_SESSION['form_data'] = $data;
+            $this->redirect("/klanten/wijzigen?id={$id}");
         }
 
-        // Haal het gekoppelde ContactId op
-        $contactId = $this->klantModel->getContactIdVoorKlant($id);
-        if (!$contactId) {
-            $this->setFlash('error', 'Contactgegevens niet gevonden.');
-            $this->redirect('/klanten/detail?id=' . $id);
+        $fout = $this->klantModel->wijzigen($id, $data);
+
+        if ($fout !== '') {
+            if (str_contains($fout, 'E-mailadres')) {
+                $melding = 'Het e-mailadres <strong>' . htmlspecialchars($data['email'], ENT_QUOTES, 'UTF-8')
+                    . '</strong> is al in gebruik door een andere gebruiker in het systeem.';
+                $this->setFlash('error', $melding);
+            } else {
+                $this->setFlash('error', $fout);
+            }
+            $_SESSION['form_data'] = $data;
+            $this->redirect("/klanten/wijzigen?id={$id}");
         }
 
-        // Serverside validatie
-        $validatieErrors = [];
-
-        if ($f = Validator::foutNaam($voornaam, 'Voornaam')) {
-            $validatieErrors['voornaam'] = $f;
-        }
-        if (!empty($tussenvoegsel) && $f = Validator::foutNaam($tussenvoegsel, 'Tussenvoegsel')) {
-            $validatieErrors['tussenvoegsel'] = $f;
-        }
-        if ($f = Validator::foutNaam($achternaam, 'Achternaam')) {
-            $validatieErrors['achternaam'] = $f;
-        }
-        if (!empty($contactEmail) && $f = Validator::foutEmail($contactEmail, 'Contact e-mailadres')) {
-            $validatieErrors['contact_email'] = $f;
-        }
-        if ($f = Validator::foutVerplicht($straatnaam, 'Straatnaam')) {
-            $validatieErrors['straatnaam'] = $f;
-        }
-        if ($f = Validator::foutHuisnummer($huisnummer)) {
-            $validatieErrors['huisnummer'] = $f;
-        }
-        if ($f = Validator::foutPostcode($postcode)) {
-            $validatieErrors['postcode'] = $f;
-        }
-        if ($f = Validator::foutPlaats($plaats)) {
-            $validatieErrors['plaats'] = $f;
-        }
-        if ($f = Validator::foutTelefoonnummer($mobiel, 'Mobiel')) {
-            $validatieErrors['mobiel'] = $f;
-        }
-
-        if (!empty($validatieErrors)) {
-            $this->klantModel->logTechnischeActie(
-                'WARNING',
-                'KlantController',
-                'Klant wijzigen mislukt (validatie)',
-                json_encode(['klant_id' => $id, 'errors' => $validatieErrors])
-            );
-
-            $csrfToken = $this->genereerCsrfToken();
-            $flash     = [
-                'type'    => 'error',
-                'bericht' => 'Klantgegevens zijn niet bijgewerkt',
-                'errors'  => $validatieErrors
-            ];
-
-            // Overschrijf klantdata met ingevoerde waarden
-            $klant['Voornaam']       = $voornaam;
-            $klant['Tussenvoegsel']  = $tussenvoegsel;
-            $klant['Achternaam']     = $achternaam;
-            $klant['Email']          = $contactEmail;
-            $klant['Straatnaam']     = $straatnaam;
-            $klant['Huisnummer']     = $huisnummer;
-            $klant['Toevoeging']     = $toevoeging;
-            $klant['Postcode']       = $postcode;
-            $klant['Plaats']         = $plaats;
-            $klant['Mobiel']         = $mobiel;
-            $klant['Bijzonderheden'] = $bijzonderheden;
-
-            $this->view('klanten/wijzigen', compact('csrfToken', 'flash', 'klant'));
-            return;
-        }
-
-        // ── Email uniciteit en opslaan worden afgehandeld door de stored procedure ──
-        // Voer de wijziging door via stored procedure
-        $resultaat = $this->klantModel->wijzigKlant($id, [
-            'voornaam'       => $voornaam,
-            'tussenvoegsel'  => $tussenvoegsel,
-            'achternaam'     => $achternaam,
-            'contact_email'  => $contactEmail,
-            'straatnaam'     => $straatnaam,
-            'huisnummer'     => $huisnummer,
-            'toevoeging'     => $toevoeging,
-            'postcode'       => $postcode,
-            'plaats'         => $plaats,
-            'mobiel'         => $mobiel,
-            'bijzonderheden' => $bijzonderheden,
-        ]);
-
-        // Stored procedure kan ook email-conflict terugmelden
-        if (!$resultaat['success']) {
-            $this->klantModel->logTechnischeActie(
-                'WARNING', 'KlantController',
-                'Klant wijzigen geweigerd door stored procedure',
-                json_encode(['klant_id' => $id, 'message' => $resultaat['message']])
-            );
-
-            $csrfToken = $this->genereerCsrfToken();
-            $flash     = [
-                'type'    => 'error',
-                'bericht' => 'Klantgegevens zijn niet bijgewerkt',
-                'errors'  => ['contact_email' => $resultaat['message']],
-            ];
-
-            $klant['Voornaam']       = $voornaam;
-            $klant['Tussenvoegsel']  = $tussenvoegsel;
-            $klant['Achternaam']     = $achternaam;
-            $klant['Email']          = $contactEmail;
-            $klant['Straatnaam']     = $straatnaam;
-            $klant['Huisnummer']     = $huisnummer;
-            $klant['Toevoeging']     = $toevoeging;
-            $klant['Postcode']       = $postcode;
-            $klant['Plaats']         = $plaats;
-            $klant['Mobiel']         = $mobiel;
-            $klant['Bijzonderheden'] = $bijzonderheden;
-
-            $this->view('klanten/wijzigen', compact('csrfToken', 'flash', 'klant'));
-            return;
-        }
-
-        // Technische log
-        $this->klantModel->logTechnischeActie(
-            'INFO',
-            'KlantController',
-            'Klantgegevens bijgewerkt',
-            json_encode([
-                'klant_id'    => $id,
-                'velden'      => ['contact_email', 'straatnaam', 'huisnummer', 'postcode', 'plaats', 'mobiel'],
-            ])
-        );
-
-        $this->setFlash('success', 'Klantgegevens bijgewerkt');
+        $this->setFlash('success', 'Klant succesvol bijgewerkt.');
         $this->redirect('/klanten');
     }
 
-    // ----------------------------------------------------------------
-    // POST /klanten/verwijderen  (stub)
-    // ----------------------------------------------------------------
+    // -------------------------------------------------------
+    // Verwijderen
+    // -------------------------------------------------------
+
     public function verwijderen(): void
     {
         $this->vereisLogin();
-        $this->setFlash('success', 'Klant verwijderd.');
+
+        if (!$this->valideerCsrfToken($_POST['csrf_token'] ?? '')) {
+            $this->logger->warning('CSRF gefaald bij verwijderen klant id=' . ($_POST['id'] ?? '?'));
+            $this->setFlash('error', 'Sessie verlopen. Probeer de pagina te herladen.');
+            $this->redirect('/klanten');
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+
+        if ($id <= 0) {
+            $this->setFlash('error', 'Ongeldig klant-ID.');
+            $this->redirect('/klanten');
+        }
+
+        $fout = $this->klantModel->verwijderen($id);
+
+        if ($fout !== '') {
+            $this->logger->error("Verwijderen klant id={$id} mislukt: {$fout}");
+            $this->setFlash('error', 'Verwijderen mislukt: ' . $fout);
+        } else {
+            $this->logger->info("Klant id={$id} succesvol verwijderd.");
+            $this->setFlash('success', 'Klant succesvol verwijderd.');
+        }
+
         $this->redirect('/klanten');
+    }
+
+    // -------------------------------------------------------
+    // Hulpmethoden
+    // -------------------------------------------------------
+
+    /**
+     * Lees en saniteer alle formuliervelden uit $_POST.
+     *
+     * @return array<string,mixed>
+     */
+    private function haalFormDataOp(): array
+    {
+        return [
+            'naam'           => trim($_POST['naam'] ?? ''),
+            'email'          => strtolower(trim($_POST['email'] ?? '')),
+            'wachtwoord'     => $_POST['wachtwoord'] ?? '',
+            'adres'          => trim($_POST['adres'] ?? ''),
+            'telefoonnummer' => trim($_POST['telefoonnummer'] ?? ''),
+            'wensen'         => trim($_POST['wensen'] ?? ''),
+            // Allergenen komen als array van integer-IDs
+            'allergenen'     => array_map('intval', $_POST['allergenen'] ?? []),
+        ];
+    }
+
+    /**
+     * Gedetailleerde server-side validatie.
+     *
+     * @param  array<string,mixed> $data
+     * @param  bool                $isNieuw
+     * @return string[]
+     */
+    private function valideerKlantData(array $data, bool $isNieuw): array
+    {
+        $fouten = [];
+
+        // --- Naam ---
+        if ($data['naam'] === '') {
+            $fouten[] = '<strong>Naam</strong> is verplicht.';
+        } elseif (strlen($data['naam']) < 2) {
+            $fouten[] = '<strong>Naam</strong> moet minimaal 2 tekens bevatten.';
+        } elseif (strlen($data['naam']) > 100) {
+            $fouten[] = '<strong>Naam</strong> mag maximaal 100 tekens bevatten.';
+        } elseif (!preg_match('/^[\pL\s\'\-\.]+$/u', $data['naam'])) {
+            $fouten[] = '<strong>Naam</strong> mag alleen letters, spaties, koppeltekens en punten bevatten.';
+        }
+
+        // --- E-mail ---
+        if ($data['email'] === '') {
+            $fouten[] = '<strong>E-mailadres</strong> is verplicht.';
+        } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $fouten[] = '<strong>E-mailadres</strong> heeft een ongeldig formaat (bijv. naam@domein.nl).';
+        } elseif (strlen($data['email']) > 255) {
+            $fouten[] = '<strong>E-mailadres</strong> mag maximaal 255 tekens bevatten.';
+        }
+
+        // --- Wachtwoord ---
+        if ($isNieuw) {
+            if ($data['wachtwoord'] === '') {
+                $fouten[] = '<strong>Wachtwoord</strong> is verplicht bij aanmaken.';
+            } else {
+                $fouten = array_merge($fouten, $this->valideerWachtwoord($data['wachtwoord']));
+            }
+        } elseif ($data['wachtwoord'] !== '') {
+            $fouten = array_merge($fouten, $this->valideerWachtwoord($data['wachtwoord']));
+        }
+
+        // --- Telefoonnummer ---
+        if ($data['telefoonnummer'] !== '') {
+            // Normaliseer: verwijder spaties, koppeltekens, haakjes
+            $telClean = preg_replace('/[\s\-\.\(\)]/', '', $data['telefoonnummer']);
+
+            $geldig = false;
+
+            // NL mobiel: 06 + 8 cijfers (bijv. 0612345678)
+            if (preg_match('/^06[0-9]{8}$/', $telClean)) {
+                $geldig = true;
+            }
+            // NL vast: 0[1-9] + 7-8 cijfers (bijv. 0201234567, 0301234567)
+            elseif (preg_match('/^0[1-9][0-9]{7,8}$/', $telClean)) {
+                $geldig = true;
+            }
+            // Internationaal: + gevolgd door 7-14 cijfers (bijv. +31612345678)
+            elseif (preg_match('/^\+[1-9][0-9]{6,13}$/', $telClean)) {
+                $geldig = true;
+            }
+
+            if (!$geldig) {
+                $fouten[] = '<strong>Telefoonnummer</strong> is ongeldig. '
+                    . 'Gebruik bijv. <code>0612345678</code>, <code>020-1234567</code> of <code>+31612345678</code>.';
+            }
+        }
+
+        // --- Adres ---
+        if ($data['adres'] !== '' && strlen($data['adres']) > 255) {
+            $fouten[] = '<strong>Adres</strong> mag maximaal 255 tekens bevatten.';
+        }
+
+        // --- Wensen ---
+        if ($data['wensen'] !== '' && strlen($data['wensen']) > 1000) {
+            $fouten[] = '<strong>Wensen</strong> mogen maximaal 1000 tekens bevatten.';
+        }
+
+        return $fouten;
+    }
+
+    /**
+     * Valideer wachtwoordsterkte.
+     *
+     * @return string[]
+     */
+    private function valideerWachtwoord(string $ww): array
+    {
+        $fouten = [];
+        if (strlen($ww) < 8) {
+            $fouten[] = '<strong>Wachtwoord</strong> moet minimaal 8 tekens bevatten.';
+        }
+        if (strlen($ww) > 72) {
+            $fouten[] = '<strong>Wachtwoord</strong> mag maximaal 72 tekens bevatten.';
+        }
+        if (!preg_match('/[A-Z]/', $ww)) {
+            $fouten[] = '<strong>Wachtwoord</strong> moet minimaal één hoofdletter bevatten.';
+        }
+        if (!preg_match('/[a-z]/', $ww)) {
+            $fouten[] = '<strong>Wachtwoord</strong> moet minimaal één kleine letter bevatten.';
+        }
+        if (!preg_match('/[0-9]/', $ww)) {
+            $fouten[] = '<strong>Wachtwoord</strong> moet minimaal één cijfer bevatten.';
+        }
+        return $fouten;
     }
 }

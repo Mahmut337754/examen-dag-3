@@ -1,132 +1,91 @@
-﻿<?php
-$rol      = htmlspecialchars(ucfirst($_SESSION['gebruiker_rol']  ?? ''), ENT_QUOTES, 'UTF-8');
-$naam     = htmlspecialchars($_SESSION['gebruiker_naam'] ?? '', ENT_QUOTES, 'UTF-8');
-?>
-<style>
-    body { background:#f0f0f0; }
+<h2 class="mb-4"><i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard</h2>
 
-    .db-badge {
-        display:inline-block;
-        background:#e8b800; color:#fff;
-        font-size:.72rem; font-weight:700;
-        padding:.18rem .65rem; border-radius:.25rem;
-        letter-spacing:.5px; text-transform:uppercase;
-        margin-bottom:.6rem;
-    }
-    .db-h1 {
-        font-size:1.75rem; font-weight:700;
-        color:#1a1a1a; margin-bottom:.15rem;
-    }
-    .db-sub {
-        font-size:.88rem; color:#555; margin-bottom:1.5rem;
-    }
-    .db-breadcrumb {
-        font-size:.82rem; color:#888; margin-bottom:1.4rem;
-    }
+<div class="row g-4 mb-5">
 
-    /* Kaarten grid */
-    .db-grid {
-        display:grid;
-        grid-template-columns:repeat(4, 1fr);
-        gap:1rem;
-    }
-    @media (max-width:900px)  { .db-grid { grid-template-columns:repeat(2,1fr); } }
-    @media (max-width:480px)  { .db-grid { grid-template-columns:1fr; } }
-
-    .db-card {
-        background:#fff;
-        border:1px solid #e0e0e0;
-        border-radius:.4rem;
-        padding:1.1rem 1.1rem 1rem;
-        display:flex;
-        flex-direction:column;
-        gap:.4rem;
-    }
-    .db-card-title {
-        font-size:.95rem; font-weight:700; color:#1a1a1a;
-    }
-    .db-card-desc {
-        font-size:.8rem; color:#666; line-height:1.4;
-        flex:1;
-    }
-    .db-btn-open {
-        display:inline-block;
-        border:1px solid #ced4da;
-        background:#fff; color:#333;
-        border-radius:.22rem;
-        padding:.22rem .75rem;
-        font-size:.79rem;
-        text-decoration:none;
-        width:fit-content;
-        margin-top:.25rem;
-        transition:background .1s;
-    }
-    .db-btn-open:hover { background:#f0f0f0; color:#333; }
-
-    /* Mobile: titel iets kleiner */
-    @media (max-width:480px) {
-        .db-h1 { font-size:1.45rem; }
-        .db-sub { font-size:.83rem; }
-    }
-</style>
-
-<!-- Badge + Titel -->
-<div class="db-badge">Kapsalon applicatie</div>
-<h1 class="db-h1"><?= $rol ?></h1>
-<div class="db-breadcrumb">Home</div>
-<p class="db-sub">Welkom bij Kniploket Tiko – hier regel je eenvoudig klanten, afspraken en planning voor de salon.</p>
-
-<!-- Kaarten -->
-<div class="db-grid">
-
-    <div class="db-card">
-        <div class="db-card-title">Accounts</div>
-        <div class="db-card-desc">Beheer gebruikersaccounts en roltoewijzingen.</div>
-        <a href="<?= url('/dashboard') ?>" class="db-btn-open">Openen</a>
+    <!-- Klanten -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card card-stat shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="fs-1 text-primary"><i class="bi bi-people-fill"></i></div>
+                <div>
+                    <div class="fs-2 fw-bold">
+                        <?= (int)($statistieken['aantal_klanten'] ?? 0) ?>
+                    </div>
+                    <div class="text-muted small">Klanten</div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="/klanten" class="btn btn-sm btn-outline-primary w-100">
+                    Beheren <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
     </div>
 
-    <div class="db-card">
-        <div class="db-card-title">Medewerkers</div>
-        <div class="db-card-desc">Overzicht van medewerkers en hun basisgegevens.</div>
-        <a href="<?= url('/medewerkers') ?>" class="db-btn-open">Openen</a>
+    <!-- Geplande afspraken -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card shadow-sm h-100" style="border-left: 4px solid #198754;">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="fs-1 text-success"><i class="bi bi-calendar-check-fill"></i></div>
+                <div>
+                    <div class="fs-2 fw-bold">
+                        <?= (int)($statistieken['geplande_afspraken'] ?? 0) ?>
+                    </div>
+                    <div class="text-muted small">Geplande afspraken</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="db-card">
-        <div class="db-card-title">Beschikbaarheid</div>
-        <div class="db-card-desc">Bekijk de beschikbaarheid van medewerkers per dag en tijd.</div>
-        <a href="<?= url('/beschikbaarheid') ?>" class="db-btn-open">Openen</a>
+    <!-- Medewerkers -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card shadow-sm h-100" style="border-left: 4px solid #fd7e14;">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="fs-1 text-warning"><i class="bi bi-person-badge-fill"></i></div>
+                <div>
+                    <div class="fs-2 fw-bold">
+                        <?= (int)($statistieken['aantal_medewerkers'] ?? 0) ?>
+                    </div>
+                    <div class="text-muted small">Medewerkers</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="db-card">
-        <div class="db-card-title">Klanten</div>
-        <div class="db-card-desc">Bekijk en filter klantgegevens op postcode en contactinformatie.</div>
-        <a href="<?= url('/klanten') ?>" class="db-btn-open">Openen</a>
+    <!-- Uitverkochte producten -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card shadow-sm h-100" style="border-left: 4px solid #dc3545;">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="fs-1 text-danger"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <div>
+                    <div class="fs-2 fw-bold">
+                        <?= (int)($statistieken['producten_uitverkocht'] ?? 0) ?>
+                    </div>
+                    <div class="text-muted small">Producten uitverkocht</div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="#" class="btn btn-sm btn-outline-secondary w-100 disabled" tabindex="-1">
+                    Producten <span class="badge bg-secondary ms-1">binnenkort</span>
+                </a>
+            </div>
+        </div>
     </div>
-
-    <div class="db-card">
-        <div class="db-card-title">Afspraken</div>
-        <div class="db-card-desc">Plan, bekijk en beheer afspraken met status en tijd.</div>
-        <a href="<?= url('/afspraken') ?>" class="db-btn-open">Openen</a>
-    </div>
-
-    <div class="db-card">
-        <div class="db-card-title">Behandelingen</div>
-        <div class="db-card-desc">Overzicht van behandelingen, duur en prijsinformatie.</div>
-        <a href="<?= url('/behandelingen') ?>" class="db-btn-open">Openen</a>
-    </div>
-
-    <div class="db-card">
-        <div class="db-card-title">Producten</div>
-        <div class="db-card-desc">Bekijk en beheer producten binnen het assortiment.</div>
-        <a href="<?= url('/producten') ?>" class="db-btn-open">Openen</a>
-    </div>
-
-    <div class="db-card">
-        <div class="db-card-title">Bestellingen</div>
-        <div class="db-card-desc">Bekijk en beheer klantbestellingen en bestelstatus.</div>
-        <a href="<?= url('/bestellingen') ?>" class="db-btn-open">Openen</a>
-    </div>
-
 </div>
 
-
+<!-- Snelkoppelingen -->
+<h5 class="text-muted mb-3">Snelkoppelingen</h5>
+<div class="d-flex flex-wrap gap-2">
+    <a href="/klanten/aanmaken" class="btn btn-success">
+        <i class="bi bi-person-plus me-2"></i>Klant toevoegen
+    </a>
+    <a href="/klanten" class="btn btn-outline-primary">
+        <i class="bi bi-people me-2"></i>Klantenlijst
+    </a>
+    <a href="/wachtwoord-wijzigen" class="btn btn-outline-secondary">
+        <i class="bi bi-key me-2"></i>Wachtwoord wijzigen
+    </a>
+    <a href="#" class="btn btn-outline-secondary disabled" tabindex="-1">
+        <i class="bi bi-box-seam me-2"></i>Producten (binnenkort)
+    </a>
+</div>
