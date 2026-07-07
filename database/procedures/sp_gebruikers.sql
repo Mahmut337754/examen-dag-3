@@ -2,7 +2,7 @@
 -- Stored procedures: gebruikers
 -- Importeer via phpMyAdmin: zonder DELIMITER-syntax
 -- =====================================================
-USE `kniploket_tiko`;
+USE `kniploket_tiko1`;
 
 -- ---------------------------------------------------
 -- SP: Haal gebruiker op via e-mail (voor inloggen)

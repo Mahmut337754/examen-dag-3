@@ -95,6 +95,12 @@ class Klant
     public function aanmaken(array $data): array
     {
         try {
+            // Valideer adres (moet tekst bevatten, geen alleen nummers)
+            $adres = trim($data['adres'] ?? '');
+            if (!empty($adres) && !preg_match('/[a-zA-Z]/', $adres)) {
+                return ['id' => 0, 'fout' => 'Adres moet een geldige straatnaam bevatten.'];
+            }
+
             // Controleer uniek e-mailadres
             $check = $this->pdo->prepare(
                 'SELECT COUNT(*) AS aantal FROM `gebruikers` WHERE `email` = :email'
@@ -171,6 +177,12 @@ class Klant
     public function wijzigen(int $klantId, array $data): string
     {
         try {
+            // Valideer adres (moet tekst bevatten, geen alleen nummers)
+            $adres = trim($data['adres'] ?? '');
+            if (!empty($adres) && !preg_match('/[a-zA-Z]/', $adres)) {
+                return 'Adres moet een geldige straatnaam bevatten.';
+            }
+
             // Haal gebruiker_id op
             $stmtId = $this->pdo->prepare(
                 'SELECT `gebruiker_id` FROM `klanten` WHERE `id` = :id LIMIT 1'

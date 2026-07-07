@@ -218,6 +218,55 @@ class KlantTest extends TestCase
     }
 
     /**
+     * Test of een ongeldig adres (alleen nummers) geweigerd wordt.
+     */
+    public function testOngeldigAdres(): void
+    {
+        $data = [
+            'naam'      => 'Test Ongeldig Adres',
+            'email'     => 'ongeldig.adres@example.com',
+            'wachtwoord' => 'Test123!',
+            'adres'     => '-69',
+            'telefoonnummer' => '0699999999',
+            'wensen'    => '',
+            'allergenen' => []
+        ];
+
+        // Test aanmaken met ongeldig adres
+        $resultaat = $this->klantModel->aanmaken($data);
+        $this->assertEquals(0, $resultaat['id']);
+        $this->assertStringContainsString('Adres moet een geldige straatnaam bevatten', $resultaat['fout']);
+
+        // Test wijzigen met ongeldig adres
+        $dataGoed = [
+            'naam'      => 'Test Klant',
+            'email'     => 'test.wijzig@example.com',
+            'wachtwoord' => 'Test123!',
+            'adres'     => 'Teststraat 1',
+            'telefoonnummer' => '0611111111',
+            'wensen'    => '',
+            'allergenen' => []
+        ];
+        $resultaatGoed = $this->klantModel->aanmaken($dataGoed);
+        $this->assertGreaterThan(0, $resultaatGoed['id']);
+
+        $updateData = [
+            'naam'      => 'Test Klant',
+            'email'     => 'test.wijzig@example.com',
+            'wachtwoord' => '',
+            'adres'     => '-69',
+            'telefoonnummer' => '0611111111',
+            'wensen'    => '',
+            'allergenen' => []
+        ];
+        $fout = $this->klantModel->wijzigen($resultaatGoed['id'], $updateData);
+        $this->assertStringContainsString('Adres moet een geldige straatnaam bevatten', $fout);
+
+        // Verwijder test klant
+        $this->klantModel->verwijderen($resultaatGoed['id']);
+    }
+
+    /**
      * Test of allergenen van een klant opgehaald kunnen worden.
      */
     public function testAllergenenVanKlant(): void
