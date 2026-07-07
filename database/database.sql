@@ -334,7 +334,14 @@ INSERT INTO `rollen` (`id`, `naam`) VALUES
 --   eigenaar@kniplokettiko.nl -> Admin123!
 --   Hashes gegenereerd met password_hash('...', PASSWORD_BCRYPT, ['cost' => 12])
 INSERT INTO `gebruikers` (`id`, `naam`, `email`, `wachtwoord`, `rol_id`, `is_actief`) VALUES
-    (1, 'Salon Eigenaar',    'eigenaar@kniplokettiko.nl',  '$2y$12$2ovM3t1/cWnI5MjcbzLyduyWYpRRJqpOL/rRx0UzW/n3TrOzSXLyK', 1, 1);
+    (1, 'Salon Eigenaar',    'eigenaar@kniplokettiko.nl',  '$2y$12$2ovM3t1/cWnI5MjcbzLyduyWYpRRJqpOL/rRx0UzW/n3TrOzSXLyK', 1, 1),
+    (2, 'Erik de Vries',     'erik@kniploket.nl',          '$2y$12$cwQT7/J7Uybt2PxxYXYz8OpgMviy3MUk2RaJgSmy6YWG7d1XPemBq', 2, 1),
+    (3, 'Sophie Bakker',     'sophie@example.com',         '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 1),
+    (4, 'Jan de Vries',      'jan.devries@example.com',    '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 1),
+    (5, 'Fatima Yilmaz',     'fatima.yilmaz@example.com',  '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 1),
+    (6, 'Marco Smit',        'marco.smit@example.com',     '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 1),
+    (7, 'Anna van den Berg', 'anna.berg@example.com',      '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 1),
+    (8, 'Thomas Kleijn',     'thomas.kl@example.com',      '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 0);
 
 -- Klanten (allergieen kolom is verwijderd — allergenen staan in klant_allergenen)
 INSERT INTO `klanten` (`id`, `gebruiker_id`, `adres`, `telefoonnummer`, `wensen`) VALUES
