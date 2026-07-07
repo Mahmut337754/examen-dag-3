@@ -3,141 +3,101 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
-use App\Models\Klant;
-use App\Models\Allergeen;
+use App\Models\UserModel;
+use App\Models\KlantModel;
 
 /**
- * Afhandeling van publieke klantregistratie.
+ * Verwerkt publieke klantregistratie.
  */
 class RegistratieController extends Controller
 {
-    private Klant     $klantModel;
-    private Allergeen $allegeenModel;
+    private UserModel  $userModel;
+    private KlantModel $klantModel;
 
     public function __construct()
     {
         parent::__construct();
-        $this->klantModel    = new Klant();
-        $this->allegeenModel = new Allergeen();
+        $this->userModel  = new UserModel();
+        $this->klantModel = new KlantModel();
     }
 
-    /** Toon het registratieformulier. */
+    // ----------------------------------------------------------------
+    // GET /registreren
+    // ----------------------------------------------------------------
     public function registrerenForm(): void
     {
-        // Al ingelogd? Stuur door.
         if (!empty($_SESSION['gebruiker_id'])) {
             $this->redirect('/dashboard');
         }
 
         $csrfToken      = $this->genereerCsrfToken();
         $flash          = $this->getFlash();
-        $alleAllergenen = $this->allegeenModel->alle();
-        $geselecteerd   = $_SESSION['form_data']['allergenen'] ?? [];
-        $oud            = $_SESSION['form_data'] ?? [];
-        unset($_SESSION['form_data']);
+        $oud            = $_SESSION['reg_oud'] ?? [];
+        $alleAllergenen = [];   // geen allergenen-tabel aanwezig; lege array
+        $geselecteerd   = [];
 
-        $this->view(
-            'auth/register',
-            compact('csrfToken', 'flash', 'alleAllergenen', 'geselecteerd', 'oud'),
-            'layouts/public'
-        );
+        unset($_SESSION['reg_oud']);
+
+        $this->view('auth/registreren', compact(
+            'csrfToken', 'flash', 'oud', 'alleAllergenen', 'geselecteerd'
+        ));
     }
 
-    /** Verwerk het registratieformulier. */
+    // ----------------------------------------------------------------
+    // POST /registreren
+    // ----------------------------------------------------------------
     public function registreren(): void
     {
+        // CSRF
         if (!$this->valideerCsrfToken($_POST['csrf_token'] ?? '')) {
-            $this->setFlash('error', 'Ongeldig verzoek (CSRF).');
+            $this->setFlash('error', 'Ongeldige sessie. Probeer opnieuw.');
             $this->redirect('/registreren');
         }
 
-        $data = [
-            'naam'           => trim($_POST['naam'] ?? ''),
-            'email'          => strtolower(trim($_POST['email'] ?? '')),
-            'wachtwoord'     => $_POST['wachtwoord'] ?? '',
-            'adres'          => trim($_POST['adres'] ?? ''),
-            'telefoonnummer' => trim($_POST['telefoonnummer'] ?? ''),
-            'wensen'         => trim($_POST['wensen'] ?? ''),
-            'allergenen'     => array_map('intval', $_POST['allergenen'] ?? []),
-        ];
+        $naam       = trim($_POST['naam']       ?? '');
+        $email      = trim($_POST['email']      ?? '');
+        $wachtwoord = $_POST['wachtwoord']      ?? '';
+        $bevestig   = $_POST['wachtwoord_bevestig'] ?? '';
 
-        $fouten = $this->valideer($data);
-
-        if (!empty($fouten)) {
-            $this->setFlash('error', implode('<br>', $fouten));
-            $_SESSION['form_data'] = $data;
-            $this->redirect('/registreren');
-        }
-
-        $resultaat = $this->klantModel->aanmaken($data);
-
-        if ($resultaat['fout'] !== '') {
-            if (str_contains($resultaat['fout'], 'E-mailadres')) {
-                $this->setFlash(
-                    'error',
-                    'Het e-mailadres <strong>' . htmlspecialchars($data['email'], ENT_QUOTES, 'UTF-8')
-                    . '</strong> is al in gebruik. Probeer in te loggen of gebruik een ander adres.'
-                );
-            } else {
-                $this->setFlash('error', $resultaat['fout']);
-            }
-            $_SESSION['form_data'] = $data;
-            $this->redirect('/registreren');
-        }
-
-        $this->setFlash('success', 'Account succesvol aangemaakt! Je kunt nu inloggen.');
-        $this->redirect('/login');
-    }
-
-    /**
-     * Valideer registratieformulier.
-     *
-     * @return string[]
-     */
-    private function valideer(array $data): array
-    {
+        // --- Validatie ---
         $fouten = [];
 
-        if ($data['naam'] === '') {
-            $fouten[] = '<strong>Naam</strong> is verplicht.';
-        } elseif (strlen($data['naam']) < 2 || strlen($data['naam']) > 100) {
-            $fouten[] = '<strong>Naam</strong> moet tussen 2 en 100 tekens zijn.';
+        if (strlen($naam) < 2) {
+            $fouten[] = 'Naam is verplicht (min. 2 tekens).';
         }
 
-        if ($data['email'] === '') {
-            $fouten[] = '<strong>E-mailadres</strong> is verplicht.';
-        } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $fouten[] = '<strong>E-mailadres</strong> heeft een ongeldig formaat.';
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $fouten[] = 'Voer een geldig e-mailadres in.';
         }
 
-        if ($data['wachtwoord'] === '') {
-            $fouten[] = '<strong>Wachtwoord</strong> is verplicht.';
-        } else {
-            if (strlen($data['wachtwoord']) < 8) {
-                $fouten[] = '<strong>Wachtwoord</strong> moet minimaal 8 tekens bevatten.';
-            }
-            if (!preg_match('/[A-Z]/', $data['wachtwoord'])) {
-                $fouten[] = '<strong>Wachtwoord</strong> moet minimaal één hoofdletter bevatten.';
-            }
-            if (!preg_match('/[a-z]/', $data['wachtwoord'])) {
-                $fouten[] = '<strong>Wachtwoord</strong> moet minimaal één kleine letter bevatten.';
-            }
-            if (!preg_match('/[0-9]/', $data['wachtwoord'])) {
-                $fouten[] = '<strong>Wachtwoord</strong> moet minimaal één cijfer bevatten.';
-            }
+        if (strlen($wachtwoord) < 8) {
+            $fouten[] = 'Wachtwoord moet minimaal 8 tekens bevatten.';
         }
 
-        if ($data['telefoonnummer'] !== '') {
-            $tel = preg_replace('/[\s\-\.\(\)]/', '', $data['telefoonnummer']);
-            if (!preg_match('/^06[0-9]{8}$/', $tel)
-                && !preg_match('/^0[1-9][0-9]{7,8}$/', $tel)
-                && !preg_match('/^\+[1-9][0-9]{6,13}$/', $tel)
-            ) {
-                $fouten[] = '<strong>Telefoonnummer</strong> is ongeldig '
-                    . '(bijv. <code>0612345678</code>, <code>020-1234567</code> of <code>+31612345678</code>).';
-            }
+        if ($wachtwoord !== $bevestig) {
+            $fouten[] = 'Wachtwoorden komen niet overeen.';
         }
 
-        return $fouten;
+        if ($this->userModel->emailBestaat($email)) {
+            $fouten[] = 'Dit e-mailadres is al in gebruik.';
+        }
+
+        if (!empty($fouten)) {
+            $_SESSION['reg_oud'] = ['naam' => $naam, 'email' => $email];
+            $this->setFlash('error', implode(' ', $fouten));
+            $this->redirect('/registreren');
+        }
+
+        // --- Opslaan ---
+        $hash   = password_hash($wachtwoord, PASSWORD_BCRYPT);
+        $userId = $this->userModel->maakAan($naam, $email, $hash);
+
+        // Maak bijbehorend Klant-record aan
+        $this->klantModel->maakAan($userId, $naam);
+
+        $this->logger->info("Nieuw klantaccount aangemaakt: {$email} (userId: {$userId})");
+
+        $this->setFlash('success', 'Account aangemaakt! U kunt nu inloggen.');
+        $this->redirect('/login');
     }
 }

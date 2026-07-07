@@ -1,7 +1,9 @@
 Options -Indexes
+DirectoryIndex index.php
 
 # Schakel mod_rewrite in
 RewriteEngine On
+RewriteBase /
 
 # Stuur alles dat geen bestaand bestand of map is door naar index.php
 RewriteCond %{REQUEST_FILENAME} !-f

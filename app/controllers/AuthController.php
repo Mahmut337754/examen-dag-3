@@ -3,167 +3,140 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
-use App\Models\User;
+use App\Models\UserModel;
 
 /**
  * Verwerkt inloggen, uitloggen en wachtwoord wijzigen.
  */
 class AuthController extends Controller
 {
-    private User $userModel;
+    private UserModel $userModel;
 
     public function __construct()
     {
         parent::__construct();
-        $this->userModel = new User();
+        $this->userModel = new UserModel();
     }
 
-    // -------------------------------------------------------
-    // Inloggen
-    // -------------------------------------------------------
-
-    /** Toon het inlogformulier. */
+    // ----------------------------------------------------------------
+    // GET /login
+    // ----------------------------------------------------------------
     public function loginForm(): void
     {
-        // Stuur ingelogde gebruiker direct door naar dashboard
         if (!empty($_SESSION['gebruiker_id'])) {
             $this->redirect('/dashboard');
         }
 
         $csrfToken = $this->genereerCsrfToken();
         $flash     = $this->getFlash();
-        $this->view('auth/login', compact('csrfToken', 'flash'), 'layouts/public');
+
+        $this->view('auth/login', compact('csrfToken', 'flash'));
     }
 
-    /** Verwerk het ingediende inlogformulier. */
+    // ----------------------------------------------------------------
+    // POST /login
+    // ----------------------------------------------------------------
     public function login(): void
     {
-        // CSRF-controle
-        $token = $_POST['csrf_token'] ?? '';
-        if (!$this->valideerCsrfToken($token)) {
-            $this->setFlash('error', 'Ongeldig verzoek. Probeer opnieuw.');
+        // CSRF
+        if (!$this->valideerCsrfToken($_POST['csrf_token'] ?? '')) {
+            $this->setFlash('error', 'Ongeldige sessie. Probeer opnieuw.');
             $this->redirect('/login');
         }
 
         $email      = trim($_POST['email'] ?? '');
         $wachtwoord = $_POST['wachtwoord'] ?? '';
 
-        // Server-side validatie
-        $fouten = [];
-        if ($email === '') {
-            $fouten[] = 'E-mailadres is verplicht.';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $fouten[] = 'Ongeldig e-mailformaat.';
-        }
-        if ($wachtwoord === '') {
-            $fouten[] = 'Wachtwoord is verplicht.';
-        }
-
-        if (!empty($fouten)) {
-            $this->setFlash('error', implode(' ', $fouten));
+        if ($email === '' || $wachtwoord === '') {
+            $this->setFlash('error', 'Vul e-mailadres en wachtwoord in.');
             $this->redirect('/login');
         }
 
-        // Gebruiker opzoeken
         $gebruiker = $this->userModel->vindOpEmail($email);
 
-        if ($gebruiker === null
-            || !$gebruiker['is_actief']
-            || !password_verify($wachtwoord, $gebruiker['wachtwoord'])
-        ) {
-            $this->logger->warning("Mislukte inlogpoging voor email: {$email}");
+        if (!$gebruiker || !password_verify($wachtwoord, $gebruiker['password'])) {
+            $this->logger->warning("Mislukte inlogpoging voor e-mail: {$email}");
             $this->setFlash('error', 'Ongeldige inloggegevens.');
             $this->redirect('/login');
         }
 
-        // Vernieuw sessie-ID ter voorkoming van session fixation
+        // Sessie regenereren ter voorkoming van session fixation
         session_regenerate_id(true);
 
-        $_SESSION['gebruiker_id']  = (int) $gebruiker['id'];
-        $_SESSION['gebruiker_naam'] = $gebruiker['naam'];
-        $_SESSION['rol']           = $gebruiker['rol_naam'];
+        $_SESSION['gebruiker_id']   = $gebruiker['id'];
+        $_SESSION['gebruiker_naam'] = $gebruiker['name'];
+        $_SESSION['gebruiker_rol']  = $gebruiker['role'];
 
-        $this->logger->info("Ingelogd: gebruiker id={$gebruiker['id']}, rol={$gebruiker['rol_naam']}");
+        $this->logger->info("Gebruiker ingelogd: {$email} (rol: {$gebruiker['role']})");
         $this->redirect('/dashboard');
     }
 
-    // -------------------------------------------------------
-    // Uitloggen
-    // -------------------------------------------------------
-
-    /** Vernietig de sessie en stuur door naar login. */
+    // ----------------------------------------------------------------
+    // GET /logout
+    // ----------------------------------------------------------------
     public function logout(): void
     {
-        $id = $_SESSION['gebruiker_id'] ?? 'onbekend';
         session_unset();
         session_destroy();
-        $this->logger->info("Gebruiker id={$id} uitgelogd.");
         $this->redirect('/login');
     }
 
-    // -------------------------------------------------------
-    // Wachtwoord wijzigen
-    // -------------------------------------------------------
-
-    /** Toon het formulier voor wachtwoord wijzigen. */
+    // ----------------------------------------------------------------
+    // GET /wachtwoord-wijzigen
+    // ----------------------------------------------------------------
     public function wachtwoordWijzigenForm(): void
     {
         $this->vereisLogin();
         $csrfToken = $this->genereerCsrfToken();
         $flash     = $this->getFlash();
+
         $this->view('auth/change-password', compact('csrfToken', 'flash'));
     }
 
-    /** Verwerk het ingediende formulier voor wachtwoord wijzigen. */
+    // ----------------------------------------------------------------
+    // POST /wachtwoord-wijzigen
+    // ----------------------------------------------------------------
     public function wachtwoordWijzigen(): void
     {
         $this->vereisLogin();
 
-        $token = $_POST['csrf_token'] ?? '';
-        if (!$this->valideerCsrfToken($token)) {
-            $this->setFlash('error', 'Ongeldig verzoek.');
+        if (!$this->valideerCsrfToken($_POST['csrf_token'] ?? '')) {
+            $this->setFlash('error', 'Ongeldige sessie. Probeer opnieuw.');
             $this->redirect('/wachtwoord-wijzigen');
         }
 
-        $huidig   = $_POST['huidig_wachtwoord'] ?? '';
-        $nieuw    = $_POST['nieuw_wachtwoord'] ?? '';
-        $bevestig = $_POST['bevestig_wachtwoord'] ?? '';
+        $huidig  = $_POST['huidig_wachtwoord']  ?? '';
+        $nieuw   = $_POST['nieuw_wachtwoord']    ?? '';
+        $bevestig= $_POST['bevestig_wachtwoord'] ?? '';
 
-        // Valideer invoer
-        $fouten = [];
-        if ($huidig === '') {
-            $fouten[] = 'Huidig wachtwoord is verplicht.';
+        if ($huidig === '' || $nieuw === '' || $bevestig === '') {
+            $this->setFlash('error', 'Alle velden zijn verplicht.');
+            $this->redirect('/wachtwoord-wijzigen');
         }
+
         if (strlen($nieuw) < 8) {
-            $fouten[] = 'Nieuw wachtwoord moet minimaal 8 tekens bevatten.';
-        }
-        if ($nieuw !== $bevestig) {
-            $fouten[] = 'Nieuwe wachtwoorden komen niet overeen.';
-        }
-
-        if (!empty($fouten)) {
-            $this->setFlash('error', implode(' ', $fouten));
+            $this->setFlash('error', 'Nieuw wachtwoord moet minimaal 8 tekens bevatten.');
             $this->redirect('/wachtwoord-wijzigen');
         }
 
-        // Controleer huidig wachtwoord
+        if ($nieuw !== $bevestig) {
+            $this->setFlash('error', 'Wachtwoorden komen niet overeen.');
+            $this->redirect('/wachtwoord-wijzigen');
+        }
+
         $gebruikerId = (int) $_SESSION['gebruiker_id'];
         $gebruiker   = $this->userModel->vindOpId($gebruikerId);
 
-        if ($gebruiker === null || !password_verify($huidig, $gebruiker['wachtwoord'])) {
+        if (!$gebruiker || !password_verify($huidig, $gebruiker['password'])) {
             $this->setFlash('error', 'Huidig wachtwoord is onjuist.');
             $this->redirect('/wachtwoord-wijzigen');
         }
 
-        // Sla nieuw wachtwoord op
-        $gelukt = $this->userModel->wijzigWachtwoord($gebruikerId, $nieuw);
+        $hash = password_hash($nieuw, PASSWORD_BCRYPT);
+        $this->userModel->werkWachtwoordBij($gebruikerId, $hash);
 
-        if ($gelukt) {
-            $this->setFlash('success', 'Wachtwoord succesvol gewijzigd.');
-        } else {
-            $this->setFlash('error', 'Fout bij opslaan nieuw wachtwoord.');
-        }
-
-        $this->redirect('/wachtwoord-wijzigen');
+        $this->logger->info("Wachtwoord gewijzigd voor gebruiker id: {$gebruikerId}");
+        $this->setFlash('success', 'Wachtwoord succesvol gewijzigd.');
+        $this->redirect('/dashboard');
     }
 }

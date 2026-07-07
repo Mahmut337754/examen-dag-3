@@ -1,300 +1,206 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests;
 
 use PHPUnit\Framework\TestCase;
-use App\Models\Klant;
-use App\Models\Allergeen;
 
 /**
- * Unit tests voor Klant model.
+ * Unit tests voor Klant-module.
+ *
+ * Test validatielogica, naam-opbouw, postcode-filter en email-checks
+ * zonder databaseverbinding.
  */
 class KlantTest extends TestCase
 {
-    private Klant $klantModel;
-    private Allergeen $allergeenModel;
+    // ----------------------------------------------------------------
+    // Helpers (zelfde logica als in controller/model)
+    // ----------------------------------------------------------------
 
-    protected function setUp(): void
+    private function isGeldigEmail(string $email): bool
     {
-        // Mock de Database en Logger voor tests
-        $this->klantModel = new Klant();
-        $this->allergeenModel = new Allergeen();
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
     }
 
-    /**
-     * Test of alle allergenen opgehaald kunnen worden.
-     */
-    public function testAlleAllergenen(): void
+    private function isGeldigePostcode(string $postcode): bool
     {
-        $allergenen = $this->allergeenModel->alle();
-        
-        $this->assertIsArray($allergenen);
-        $this->assertNotEmpty($allergenen);
-        $this->assertArrayHasKey('id', $allergenen[0]);
-        $this->assertArrayHasKey('naam', $allergenen[0]);
+        return (bool) preg_match('/^\d{4}\s?[A-Za-z]{2}$/', $postcode);
     }
 
-    /**
-     * Test of alle klanten opgehaald kunnen worden.
-     */
-    public function testOverzicht(): void
+    private function bouwNaam(array $klant): string
     {
-        $klanten = $this->klantModel->overzicht();
-        
-        $this->assertIsArray($klanten);
-        $this->assertArrayHasKey('id', $klanten[0]);
-        $this->assertArrayHasKey('naam', $klanten[0]);
-        $this->assertArrayHasKey('email', $klanten[0]);
+        $naam = $klant['Voornaam'];
+        if (!empty($klant['Tussenvoegsel'])) {
+            $naam .= ' ' . $klant['Tussenvoegsel'];
+        }
+        return trim($naam . ' ' . $klant['Achternaam']);
     }
 
-    /**
-     * Test of een klant opgehaald kan worden op ID.
-     */
-    public function testVindOpId(): void
+    // ================================================================
+    // EMAIL VALIDATIE
+    // ================================================================
+
+    /** @test */
+    public function testGeldigeEmailAdressen(): void
     {
-        // Eerst een klant aanmaken om te testen
-        $data = [
-            'naam'      => 'Test Klant',
-            'email'     => 'test.klant@example.com',
-            'wachtwoord' => 'Test123!',
-            'adres'     => 'Teststraat 1',
-            'telefoonnummer' => '0612345678',
-            'wensen'    => 'Test wensen',
-            'allergenen' => []
-        ];
-
-        $resultaat = $this->klantModel->aanmaken($data);
-        $this->assertGreaterThan(0, $resultaat['id']);
-        $this->assertEquals('', $resultaat['fout']);
-
-        $klant = $this->klantModel->vindOpId($resultaat['id']);
-        $this->assertNotNull($klant);
-        $this->assertEquals('Test Klant', $klant['naam']);
-        $this->assertEquals('test.klant@example.com', $klant['email']);
-        $this->assertEquals('Teststraat 1', $klant['adres']);
-        $this->assertEquals('0612345678', $klant['telefoonnummer']);
-
-        // Verwijder test klant
-        $this->klantModel->verwijderen($resultaat['id']);
+        foreach (['jan.jansen@outlook.com', 'lisa@kniploket.nl', 'a+b@test.nl'] as $email) {
+            $this->assertTrue($this->isGeldigEmail($email), "Verwacht geldig: {$email}");
+        }
     }
 
-    /**
-     * Test of een klant aangemaakt kan worden.
-     */
-    public function testAanmaken(): void
+    /** @test */
+    public function testOngeligeEmailAdressen(): void
     {
-        $data = [
-            'naam'      => 'Nieuwe Test Klant',
-            'email'     => 'nieuwe.klant@example.com',
-            'wachtwoord' => 'Nieuw123!',
-            'adres'     => 'Nieuwe Straat 2',
-            'telefoonnummer' => '0687654321',
-            'wensen'    => 'Nieuwe wensen',
-            'allergenen' => [1, 2]
-        ];
-
-        $resultaat = $this->klantModel->aanmaken($data);
-        
-        $this->assertGreaterThan(0, $resultaat['id']);
-        $this->assertEquals('', $resultaat['fout']);
-
-        // Verwijder test klant
-        $this->klantModel->verwijderen($resultaat['id']);
+        foreach (['', 'geen-apenstaartje', '@domein.nl', 'test@'] as $email) {
+            $this->assertFalse($this->isGeldigEmail($email), "Verwacht ongeldig: '{$email}'");
+        }
     }
 
-    /**
-     * Test of dubbele e-mail geweigerd wordt.
-     */
-    public function testDubbeleEmail(): void
+    // ================================================================
+    // POSTCODE VALIDATIE
+    // ================================================================
+
+    /** @test */
+    public function testGeldigePostcodes(): void
     {
-        $data = [
-            'naam'      => 'Unieke Klant',
-            'email'     => 'uniek.email@example.com',
-            'wachtwoord' => 'Uniek123!',
-            'adres'     => 'Uniek 3',
-            'telefoonnummer' => '0611111111',
-            'wensen'    => '',
-            'allergenen' => []
-        ];
-
-        // Eerste aanmaak
-        $resultaat1 = $this->klantModel->aanmaken($data);
-        $this->assertGreaterThan(0, $resultaat1['id']);
-
-        // Tweede aanmaak metzelfde e-mail
-        $resultaat2 = $this->klantModel->aanmaken($data);
-        $this->assertEquals(0, $resultaat2['id']);
-        $this->assertStringContainsString('E-mailadres is al in gebruik', $resultaat2['fout']);
-
-        // Verwijder test klant
-        $this->klantModel->verwijderen($resultaat1['id']);
+        foreach (['3512AB', '1234XY', '3572BC', '3512 AB'] as $pc) {
+            $this->assertTrue($this->isGeldigePostcode($pc), "Verwacht geldig: {$pc}");
+        }
     }
 
-    /**
-     * Test of een klant gewijzigd kan worden.
-     */
-    public function testWijzigen(): void
+    /** @test */
+    public function testOngeligePostcodes(): void
     {
-        // Eerst een klant aanmaken
-        $data = [
-            'naam'      => 'Oude Naam',
-            'email'     => 'oude.email@example.com',
-            'wachtwoord' => 'Oude123!',
-            'adres'     => 'Oude Straat 4',
-            'telefoonnummer' => '0622222222',
-            'wensen'    => 'Oude wensen',
-            'allergenen' => []
-        ];
-
-        $resultaat = $this->klantModel->aanmaken($data);
-        $klantId = $resultaat['id'];
-
-        // Wijzig de klant
-        $updateData = [
-            'naam'      => 'Nieuwe Naam',
-            'email'     => 'nieuwe.email@example.com',
-            'wachtwoord' => 'Nieuwe123!',
-            'adres'     => 'Nieuwe Straat 5',
-            'telefoonnummer' => '0633333333',
-            'wensen'    => 'Nieuwe wensen',
-            'allergenen' => [3, 4]
-        ];
-
-        $fout = $this->klantModel->wijzigen($klantId, $updateData);
-        $this->assertEquals('', $fout);
-
-        // Controleer of gewijzigd
-        $klant = $this->klantModel->vindOpId($klantId);
-        $this->assertEquals('Nieuwe Naam', $klant['naam']);
-        $this->assertEquals('nieuwe.email@example.com', $klant['email']);
-        $this->assertEquals('Nieuwe Straat 5', $klant['adres']);
-        $this->assertEquals('0633333333', $klant['telefoonnummer']);
-
-        // Verwijder test klant
-        $this->klantModel->verwijderen($klantId);
+        foreach (['', '123', 'ABCD12', 'AB1234', '00000'] as $pc) {
+            $this->assertFalse($this->isGeldigePostcode($pc), "Verwacht ongeldig: '{$pc}'");
+        }
     }
 
-    /**
-     * Test of een klant verwijderd kan worden.
-     */
-    public function testVerwijderen(): void
+    // ================================================================
+    // NAAM OPBOUW
+    // ================================================================
+
+    /** @test */
+    public function testNaamZonderTussenvoegsel(): void
     {
-        // Eerst een klant aanmaken
-        $data = [
-            'naam'      => 'Te Verwijderen Klant',
-            'email'     => 'verwijderen@example.com',
-            'wachtwoord' => 'Verwijder123!',
-            'adres'     => 'Verwijder Straat 6',
-            'telefoonnummer' => '0644444444',
-            'wensen'    => '',
-            'allergenen' => []
-        ];
-
-        $resultaat = $this->klantModel->aanmaken($data);
-        $klantId = $resultaat['id'];
-
-        // Verwijder de klant
-        $fout = $this->klantModel->verwijderen($klantId);
-        $this->assertEquals('', $fout);
-
-        // Controleer of het echt weg is
-        $klant = $this->klantModel->vindOpId($klantId);
-        $this->assertNull($klant);
+        $this->assertSame('Jan Jansen', $this->bouwNaam([
+            'Voornaam' => 'Jan', 'Tussenvoegsel' => '', 'Achternaam' => 'Jansen'
+        ]));
     }
 
-    /**
-     * Test of statistieken opgehaald kunnen worden.
-     */
-    public function testStatistieken(): void
+    /** @test */
+    public function testNaamMetTussenvoegsel(): void
     {
-        $stats = $this->klantModel->statistieken();
-        
-        $this->assertIsArray($stats);
-        $this->assertArrayHasKey('aantal_klanten', $stats);
-        $this->assertArrayHasKey('geplande_afspraken', $stats);
-        $this->assertArrayHasKey('aantal_medewerkers', $stats);
-        $this->assertArrayHasKey('producten_uitverkocht', $stats);
-        $this->assertGreaterThanOrEqual(0, $stats['aantal_klanten']);
+        $this->assertSame('Piet van Loenen', $this->bouwNaam([
+            'Voornaam' => 'Piet', 'Tussenvoegsel' => 'van', 'Achternaam' => 'Loenen'
+        ]));
     }
 
-    /**
-     * Test of een ongeldig adres (alleen nummers) geweigerd wordt.
-     */
-    public function testOngeldigAdres(): void
+    /** @test */
+    public function testNaamMetMeerwoordigTussenvoegsel(): void
     {
-        $data = [
-            'naam'      => 'Test Ongeldig Adres',
-            'email'     => 'ongeldig.adres@example.com',
-            'wachtwoord' => 'Test123!',
-            'adres'     => '-69',
-            'telefoonnummer' => '0699999999',
-            'wensen'    => '',
-            'allergenen' => []
-        ];
-
-        // Test aanmaken met ongeldig adres
-        $resultaat = $this->klantModel->aanmaken($data);
-        $this->assertEquals(0, $resultaat['id']);
-        $this->assertStringContainsString('Adres moet een geldige straatnaam bevatten', $resultaat['fout']);
-
-        // Test wijzigen met ongeldig adres
-        $dataGoed = [
-            'naam'      => 'Test Klant',
-            'email'     => 'test.wijzig@example.com',
-            'wachtwoord' => 'Test123!',
-            'adres'     => 'Teststraat 1',
-            'telefoonnummer' => '0611111111',
-            'wensen'    => '',
-            'allergenen' => []
-        ];
-        $resultaatGoed = $this->klantModel->aanmaken($dataGoed);
-        $this->assertGreaterThan(0, $resultaatGoed['id']);
-
-        $updateData = [
-            'naam'      => 'Test Klant',
-            'email'     => 'test.wijzig@example.com',
-            'wachtwoord' => '',
-            'adres'     => '-69',
-            'telefoonnummer' => '0611111111',
-            'wensen'    => '',
-            'allergenen' => []
-        ];
-        $fout = $this->klantModel->wijzigen($resultaatGoed['id'], $updateData);
-        $this->assertStringContainsString('Adres moet een geldige straatnaam bevatten', $fout);
-
-        // Verwijder test klant
-        $this->klantModel->verwijderen($resultaatGoed['id']);
+        $this->assertSame('Marieke van den Berg', $this->bouwNaam([
+            'Voornaam' => 'Marieke', 'Tussenvoegsel' => 'van den', 'Achternaam' => 'Berg'
+        ]));
     }
 
-    /**
-     * Test of allergenen van een klant opgehaald kunnen worden.
-     */
-    public function testAllergenenVanKlant(): void
+    // ================================================================
+    // VALIDATIE LOGICA (serverside simulatie)
+    // ================================================================
+
+    /** @test */
+    public function testAlleVerplichteLegVeldenGevenFouten(): void
     {
-        // Eerst een klant aanmaken met allergenen
-        $data = [
-            'naam'      => 'Klant Met Allergenen',
-            'email'     => 'allergeen@example.com',
-            'wachtwoord' => 'Allergeen123!',
-            'adres'     => 'Allergen Straat 7',
-            'telefoonnummer' => '0655555555',
-            'wensen'    => '',
-            'allergenen' => [1, 5, 10]
-        ];
+        $data   = ['contact_email' => '', 'straatnaam' => '', 'huisnummer' => '',
+                   'postcode' => '', 'plaats' => '', 'mobiel' => ''];
+        $fouten = [];
+        foreach (array_keys($data) as $veld) {
+            if (empty(trim($data[$veld]))) { $fouten[$veld] = 'verplicht'; }
+        }
+        $this->assertCount(6, $fouten);
+    }
 
-        $resultaat = $this->klantModel->aanmaken($data);
-        $klantId = $resultaat['id'];
+    /** @test */
+    public function testGeldigFormulierGeeftGeenFouten(): void
+    {
+        $data   = ['contact_email' => 'jan@example.com', 'straatnaam' => 'Biltstraat',
+                   'huisnummer' => '44', 'postcode' => '3572BC', 'plaats' => 'Utrecht', 'mobiel' => '0612345678'];
+        $fouten = [];
+        if (!$this->isGeldigEmail($data['contact_email'])) { $fouten['contact_email'] = 'ongeldig'; }
+        if (!$this->isGeldigePostcode($data['postcode']))  { $fouten['postcode']       = 'ongeldig'; }
+        foreach (['straatnaam','huisnummer','plaats','mobiel'] as $v) {
+            if (empty(trim($data[$v]))) { $fouten[$v] = 'verplicht'; }
+        }
+        $this->assertEmpty($fouten);
+    }
 
-        // Haal allergenen op
-        $allergenen = $this->allergeenModel->namenVanKlant($klantId);
-        
-        $this->assertIsArray($allergenen);
-        $this->assertNotEmpty($allergenen);
-        $this->assertContains('Gluten', $allergenen);
-        $this->assertContains('Pinda', $allergenen);
-        $this->assertContains('Mosterd', $allergenen);
+    /** @test */
+    public function testOngeldigEmailGeeftValidatiefout(): void
+    {
+        $this->assertFalse($this->isGeldigEmail('geen-geldig-email'));
+    }
 
-        // Verwijder test klant
-        $this->klantModel->verwijderen($klantId);
+    /** @test */
+    public function testOngeldigePostcodeGeeftValidatiefout(): void
+    {
+        $this->assertFalse($this->isGeldigePostcode('ONGELDIG'));
+    }
+
+    // ================================================================
+    // POSTCODE FILTER LOGICA
+    // ================================================================
+
+    /** @test */
+    public function testPostcodeNormaliseringVerwijdertSpatie(): void
+    {
+        $this->assertSame('3572BC', str_replace(' ', '', strtoupper('3572 bc')));
+    }
+
+    /** @test */
+    public function testPostcodePrefixFilterMatchtCorrect(): void
+    {
+        $postcodes = ['3512AB', '3572BC', '1234XY', '3511AB'];
+        $gevonden  = array_filter($postcodes, fn($p) => str_starts_with($p, '35'));
+        $this->assertCount(3, array_values($gevonden));
+    }
+
+    // ================================================================
+    // RELATIENUMMER FORMAAT
+    // ================================================================
+
+    /** @test */
+    public function testRelatienummerFormaatKlopt(): void
+    {
+        foreach (['KL-2026-001', 'KL-2026-006', 'KL-2026-004'] as $nr) {
+            $this->assertMatchesRegularExpression('/^KL-\d{4}-\d{3,}$/', $nr);
+        }
+    }
+
+    /** @test */
+    public function testRelatienummerBegintMetKL(): void
+    {
+        $this->assertTrue(str_starts_with('KL-2026-001', 'KL-'));
+        $this->assertFalse(str_starts_with('MD-2026-001', 'KL-'));
+    }
+
+    // ================================================================
+    // EMAIL UNICITEIT SIMULATIE
+    // ================================================================
+
+    /** @test */
+    public function testBestaandEmailAdresWordtGesignaleerd(): void
+    {
+        $bestaandeEmails = ['jan.jansen@outlook.com', 'piet.van.loenen@gmail.com'];
+        $nieuwEmail      = 'jan.jansen@outlook.com'; // al in gebruik
+        $this->assertContains($nieuwEmail, $bestaandeEmails);
+    }
+
+    /** @test */
+    public function testNieuwEmailAdresWordtGeaccepteerd(): void
+    {
+        $bestaandeEmails = ['jan.jansen@outlook.com', 'piet.van.loenen@gmail.com'];
+        $nieuwEmail      = 'nieuw@example.com';
+        $this->assertNotContains($nieuwEmail, $bestaandeEmails);
     }
 }

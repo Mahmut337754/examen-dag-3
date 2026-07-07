@@ -1,71 +1,111 @@
-<section class="py-5" style="min-height:80vh;background:#fafaf8;">
-<div class="container">
-<div class="row justify-content-center">
-<div class="col-md-5 col-lg-4">
+<style>
+    .login-section {
+        min-height: 80vh;
+        background: #fafaf8;
+        display: flex;
+        align-items: center;
+        padding: 2rem 1rem;
+    }
+    .login-inner {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+    }
+    .login-header { text-align:center; margin-bottom:1.5rem; }
+    .login-header h2 { font-size: clamp(1.3rem, 5vw, 1.75rem); font-weight:700; margin-top:.5rem; }
+    .login-header p  { font-size:.88rem; color:#666; }
 
-    <div class="text-center mb-4">
-        <i class="bi bi-scissors fs-1" style="color:var(--salon-gold, #c9a84c);"></i>
-        <h2 class="fw-bold mt-2">Inloggen</h2>
-        <p class="text-muted">Welkom terug bij Kniploket Tiko</p>
-    </div>
+    .login-card {
+        background:#fff; border:1px solid #ddd;
+        border-radius:.5rem; padding:1.75rem 1.75rem 1.5rem;
+    }
+    .lg-lbl { font-size:.82rem; font-weight:600; color:#333; display:block; margin-bottom:.25rem; }
+    .lg-fld { margin-bottom:1rem; }
+    .lg-input {
+        width:100%; border:1px solid #ced4da; border-radius:.25rem;
+        padding:.44rem .7rem; font-size:.87rem; color:#333;
+        background:#fff; box-sizing:border-box;
+    }
+    .lg-input:focus { outline:none; border-color:#c0392b; }
+    .lg-pw-wrap { display:flex; }
+    .lg-pw-wrap .lg-input { border-radius:.25rem 0 0 .25rem; }
+    .lg-pw-toggle {
+        border:1px solid #ced4da; border-left:none; background:#fff;
+        border-radius:0 .25rem .25rem 0; padding:0 .7rem;
+        cursor:pointer; color:#555; font-size:.9rem;
+        display:flex; align-items:center;
+    }
+    .lg-pw-toggle:hover { background:#f8f8f8; }
+    .lg-btn {
+        display:block; width:100%;
+        background:#c9a84c; color:#1a1a2e; border:none;
+        border-radius:.25rem; padding:.56rem 1rem;
+        font-size:.95rem; font-weight:700; cursor:pointer;
+        margin-top:.5rem;
+    }
+    .lg-btn:hover { background:#b8973e; }
+    .lg-divider { border:none; border-top:1px solid #eee; margin:1.1rem 0; }
+    .lg-links { text-align:center; font-size:.83rem; color:#666; }
+    .lg-links a { color:#c0392b; text-decoration:none; font-weight:600; }
+    .lg-links a:hover { text-decoration:underline; }
+    @media (max-width:480px) {
+        .login-card { padding:1.25rem 1rem; }
+    }
+</style>
 
-    <div class="card shadow-sm border-0" style="border-radius:1rem;">
-        <div class="card-body p-4">
+<div class="login-section">
+    <div class="login-inner">
+        <div class="login-header">
+            <i class="bi bi-scissors" style="font-size:2.5rem; color:#c9a84c;"></i>
+            <h2>Inloggen</h2>
+            <p>Welkom terug bij Kniploket Tiko</p>
+        </div>
+
+        <div class="login-card">
             <form method="POST" action="<?= url('/login') ?>" novalidate id="loginForm">
                 <input type="hidden" name="csrf_token"
                     value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
 
-                <div class="mb-3">
-                    <label for="email" class="form-label fw-semibold">E-mailadres</label>
-                    <input type="email" class="form-control" id="email" name="email"
+                <div class="lg-fld">
+                    <label for="email" class="lg-lbl">E-mailadres</label>
+                    <input type="email" class="lg-input" id="email" name="email"
                         required autocomplete="email" maxlength="255"
                         placeholder="naam@voorbeeld.nl">
-                    <div class="invalid-feedback">Voer een geldig e-mailadres in.</div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="wachtwoord" class="form-label fw-semibold">Wachtwoord</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control" id="wachtwoord"
+                <div class="lg-fld">
+                    <label for="wachtwoord" class="lg-lbl">Wachtwoord</label>
+                    <div class="lg-pw-wrap">
+                        <input type="password" class="lg-input" id="wachtwoord"
                             name="wachtwoord" required autocomplete="current-password"
                             placeholder="Wachtwoord">
-                        <button class="btn btn-outline-secondary" type="button"
-                            id="toggleWachtwoord" tabindex="-1">
+                        <button type="button" class="lg-pw-toggle" id="toggleWw" tabindex="-1">
                             <i class="bi bi-eye" id="oogIcoon"></i>
                         </button>
                     </div>
-                    <div class="invalid-feedback">Wachtwoord is verplicht.</div>
                 </div>
 
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-lg fw-bold"
-                        style="background:var(--salon-gold,#c9a84c);color:#1a1a2e;">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Inloggen
-                    </button>
-                </div>
+                <button type="submit" class="lg-btn">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Inloggen
+                </button>
             </form>
 
-            <hr class="my-3">
+            <hr class="lg-divider">
 
-            <p class="text-center text-muted small mb-0">
+            <div class="lg-links">
                 Nog geen account?
-                <a href="/registreren" class="text-decoration-none fw-semibold">Account aanmaken</a>
-            </p>
-            <p class="text-center mt-2 mb-0">
-                <a href="/" class="text-decoration-none text-muted small">
-                    <i class="bi bi-arrow-left me-1"></i>Terug naar homepagina
+                <a href="<?= url('/registreren') ?>">Account aanmaken</a>
+                &nbsp;·&nbsp;
+                <a href="<?= url('/') ?>" style="color:#888; font-weight:400;">
+                    <i class="bi bi-arrow-left"></i> Terug
                 </a>
-            </p>
+            </div>
         </div>
     </div>
-
 </div>
-</div>
-</div>
-</section>
 
 <script>
-document.getElementById('toggleWachtwoord').addEventListener('click', function () {
+document.getElementById('toggleWw').addEventListener('click', function () {
     const veld  = document.getElementById('wachtwoord');
     const icoon = document.getElementById('oogIcoon');
     veld.type = veld.type === 'password' ? 'text' : 'password';

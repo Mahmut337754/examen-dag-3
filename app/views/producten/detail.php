@@ -1,53 +1,36 @@
-<div class="row justify-content-center">
-    <div class="col-lg-8">
+<style>
+    body { background:#f0f0f0; }
+    .pd-bc { font-size:.84rem; margin-bottom:.5rem; color:#555; }
+    .pd-bc a { color:#555; text-decoration:none; }
+    .pd-bc a:hover { text-decoration:underline; }
+    .pd-h1 { color:#c0392b; font-size:1.45rem; font-weight:700; margin-bottom:1rem; }
+    .pd-card {
+        background:#fff; border:1px solid #ddd;
+        border-radius:.35rem; padding:1.1rem 1.25rem;
+        max-width:600px; width:100%;
+        font-size:.87rem; color:#555;
+    }
+    .pd-btn-terug {
+        display:inline-flex; align-items:center; gap:.35rem;
+        background:#fff; color:#333; border:1px solid #ced4da;
+        border-radius:.25rem; padding:.42rem 1rem;
+        font-size:.84rem; font-weight:600;
+        text-decoration:none; margin-top:.75rem;
+    }
+    .pd-btn-terug:hover { background:#f0f0f0; color:#333; }
+</style>
 
-        <div class="d-flex align-items-center gap-3 mb-4">
-            <a href="<?= $base ?>/producten" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left"></i>
-            </a>
-            <h2 class="mb-0">
-                <i class="bi bi-box-seam me-2 text-primary"></i>
-                <?= htmlspecialchars($product['productnaam'] ?? '', ENT_QUOTES, 'UTF-8') ?>
-            </h2>
-        </div>
+<div class="pd-bc">
+    <a href="<?= url('/dashboard') ?>">Home</a> /
+    <a href="<?= url('/producten') ?>">Producten</a> / Detail
+</div>
 
-        <!-- Productgegevens -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-primary text-white">
-                <i class="bi bi-info-circle me-2"></i>Productgegevens
-            </div>
-            <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Productnaam</dt>
-                    <dd class="col-sm-8"><?= htmlspecialchars($product['productnaam'] ?? '–', ENT_QUOTES, 'UTF-8') ?></dd>
+<h1 class="pd-h1">Productdetail</h1>
 
-                    <dt class="col-sm-4">Categorie</dt>
-                    <dd class="col-sm-8"><?= htmlspecialchars($product['categorie'] ?? '–', ENT_QUOTES, 'UTF-8') ?></dd>
+<div class="pd-card">
+    Productdetails volgen later.
+</div>
 
-                    <dt class="col-sm-4">EAN-code</dt>
-                    <dd class="col-sm-8" style="font-family: monospace;">
-                        <?= htmlspecialchars($product['ean_code'] ?? '–', ENT_QUOTES, 'UTF-8') ?>
-                    </dd>
-
-                    <dt class="col-sm-4">Voorraad</dt>
-                    <dd class="col-sm-8">
-                        <?php if ($product['voorraad'] == 0): ?>
-                            <span class="badge bg-danger">Uitverkocht</span>
-                        <?php elseif ($product['voorraad'] < 5): ?>
-                            <span class="badge bg-warning">Laag (<?= (int)$product['voorraad'] ?> stuks)</span>
-                        <?php else: ?>
-                            <span class="badge bg-success"><?= (int)$product['voorraad'] ?> stuks</span>
-                        <?php endif; ?>
-                    </dd>
-
-                    <dt class="col-sm-4">Leverancier</dt>
-                    <dd class="col-sm-8"><?= htmlspecialchars($product['leverancier_naam'] ?? '–', ENT_QUOTES, 'UTF-8') ?></dd>
-
-                    <dt class="col-sm-4">Prijs</dt>
-                    <dd class="col-sm-8 fw-semibold">€<?= number_format((float)$product['prijs'], 2, ',', '.') ?></dd>
-                </dl>
-            </div>
-        </div>
-
-    </div>
+<div>
+    <a href="<?= url('/producten') ?>" class="pd-btn-terug">&#8592; Terug naar overzicht</a>
 </div>
