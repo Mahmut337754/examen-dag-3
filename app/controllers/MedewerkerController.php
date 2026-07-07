@@ -138,6 +138,9 @@ class MedewerkerController extends Controller
         }
 
         $id            = (int)  ($_POST['id']            ?? 0);
+        $voornaam      = trim(   $_POST['voornaam']      ?? '');
+        $tussenvoegsel = trim(   $_POST['tussenvoegsel'] ?? '');
+        $achternaam    = trim(   $_POST['achternaam']    ?? '');
         $specialisatie = trim(   $_POST['specialisatie']  ?? '');
         $geboortedatum = trim(   $_POST['geboortedatum']  ?? '');
         $contactEmail  = trim(   $_POST['contact_email']  ?? '');
@@ -159,6 +162,15 @@ class MedewerkerController extends Controller
         // ── Serverside validatie ──────────────────────────────────────
         $validatieErrors = [];
 
+        if ($f = Validator::foutNaam($voornaam, 'Voornaam')) {
+            $validatieErrors['voornaam'] = $f;
+        }
+        if (!empty($tussenvoegsel) && $f = Validator::foutNaam($tussenvoegsel, 'Tussenvoegsel')) {
+            $validatieErrors['tussenvoegsel'] = $f;
+        }
+        if ($f = Validator::foutNaam($achternaam, 'Achternaam')) {
+            $validatieErrors['achternaam'] = $f;
+        }
         if ($f = Validator::foutVerplicht($specialisatie, 'Specialisatie')) {
             $validatieErrors['specialisatie'] = $f;
         }
@@ -167,7 +179,7 @@ class MedewerkerController extends Controller
         } elseif (!strtotime($geboortedatum)) {
             $validatieErrors['geboortedatum'] = 'Voer een geldige datum in';
         }
-        if ($f = Validator::foutEmail($contactEmail, 'Contact e-mail')) {
+        if (!empty($contactEmail) && $f = Validator::foutEmail($contactEmail, 'Contact e-mail')) {
             $validatieErrors['contact_email'] = $f;
         }
         if ($f = Validator::foutVerplicht($straatnaam, 'Straatnaam')) {
@@ -182,7 +194,7 @@ class MedewerkerController extends Controller
         if ($f = Validator::foutPlaats($plaats)) {
             $validatieErrors['plaats'] = $f;
         }
-        if ($f = Validator::foutVerplicht($mobiel, 'Mobiel')) {
+        if ($f = Validator::foutTelefoonnummer($mobiel, 'Mobiel')) {
             $validatieErrors['mobiel'] = $f;
         }
 
@@ -214,6 +226,9 @@ class MedewerkerController extends Controller
             ];
 
             // Overschrijf medewerkerdata met ingevoerde waarden
+            $medewerker['Voornaam']      = $voornaam;
+            $medewerker['Tussenvoegsel'] = $tussenvoegsel;
+            $medewerker['Achternaam']    = $achternaam;
             $medewerker['Specialisatie'] = $specialisatie;
             $medewerker['Geboortedatum'] = $geboortedatum;
             $medewerker['ContactEmail']  = $contactEmail;
@@ -231,6 +246,9 @@ class MedewerkerController extends Controller
 
         // ── Opslaan via stored procedure ─────────────────────────────
         $resultaat = $this->medewerkerModel->wijzigMedewerker($id, [
+            'voornaam'      => $voornaam,
+            'tussenvoegsel' => $tussenvoegsel,
+            'achternaam'    => $achternaam,
             'specialisatie' => $specialisatie,
             'geboortedatum' => $geboortedatum,
             'contact_email' => $contactEmail,
@@ -258,6 +276,9 @@ class MedewerkerController extends Controller
                 'errors'  => ['specialisatie' => $resultaat['message']],
             ];
 
+            $medewerker['Voornaam']      = $voornaam;
+            $medewerker['Tussenvoegsel'] = $tussenvoegsel;
+            $medewerker['Achternaam']    = $achternaam;
             $medewerker['Specialisatie'] = $specialisatie;
             $medewerker['Geboortedatum'] = $geboortedatum;
             $medewerker['ContactEmail']  = $contactEmail;

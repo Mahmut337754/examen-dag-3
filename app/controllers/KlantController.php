@@ -140,6 +140,9 @@ class KlantController extends Controller
         }
 
         $id              = (int) ($_POST['id'] ?? 0);
+        $voornaam        = trim($_POST['voornaam'] ?? '');
+        $tussenvoegsel   = trim($_POST['tussenvoegsel'] ?? '');
+        $achternaam      = trim($_POST['achternaam'] ?? '');
         $contactEmail    = trim($_POST['contact_email'] ?? '');
         $straatnaam      = trim($_POST['straatnaam'] ?? '');
         $huisnummer      = trim($_POST['huisnummer'] ?? '');
@@ -166,7 +169,16 @@ class KlantController extends Controller
         // Serverside validatie
         $validatieErrors = [];
 
-        if ($f = Validator::foutEmail($contactEmail, 'Contact e-mailadres')) {
+        if ($f = Validator::foutNaam($voornaam, 'Voornaam')) {
+            $validatieErrors['voornaam'] = $f;
+        }
+        if (!empty($tussenvoegsel) && $f = Validator::foutNaam($tussenvoegsel, 'Tussenvoegsel')) {
+            $validatieErrors['tussenvoegsel'] = $f;
+        }
+        if ($f = Validator::foutNaam($achternaam, 'Achternaam')) {
+            $validatieErrors['achternaam'] = $f;
+        }
+        if (!empty($contactEmail) && $f = Validator::foutEmail($contactEmail, 'Contact e-mailadres')) {
             $validatieErrors['contact_email'] = $f;
         }
         if ($f = Validator::foutVerplicht($straatnaam, 'Straatnaam')) {
@@ -181,7 +193,7 @@ class KlantController extends Controller
         if ($f = Validator::foutPlaats($plaats)) {
             $validatieErrors['plaats'] = $f;
         }
-        if ($f = Validator::foutVerplicht($mobiel, 'Mobiel')) {
+        if ($f = Validator::foutTelefoonnummer($mobiel, 'Mobiel')) {
             $validatieErrors['mobiel'] = $f;
         }
 
@@ -201,6 +213,9 @@ class KlantController extends Controller
             ];
 
             // Overschrijf klantdata met ingevoerde waarden
+            $klant['Voornaam']       = $voornaam;
+            $klant['Tussenvoegsel']  = $tussenvoegsel;
+            $klant['Achternaam']     = $achternaam;
             $klant['Email']          = $contactEmail;
             $klant['Straatnaam']     = $straatnaam;
             $klant['Huisnummer']     = $huisnummer;
@@ -217,6 +232,9 @@ class KlantController extends Controller
         // ── Email uniciteit en opslaan worden afgehandeld door de stored procedure ──
         // Voer de wijziging door via stored procedure
         $resultaat = $this->klantModel->wijzigKlant($id, [
+            'voornaam'       => $voornaam,
+            'tussenvoegsel'  => $tussenvoegsel,
+            'achternaam'     => $achternaam,
             'contact_email'  => $contactEmail,
             'straatnaam'     => $straatnaam,
             'huisnummer'     => $huisnummer,
@@ -242,6 +260,9 @@ class KlantController extends Controller
                 'errors'  => ['contact_email' => $resultaat['message']],
             ];
 
+            $klant['Voornaam']       = $voornaam;
+            $klant['Tussenvoegsel']  = $tussenvoegsel;
+            $klant['Achternaam']     = $achternaam;
             $klant['Email']          = $contactEmail;
             $klant['Straatnaam']     = $straatnaam;
             $klant['Huisnummer']     = $huisnummer;

@@ -108,12 +108,12 @@ if (!function_exists('klantUrl')) {
     .kl-table tbody td { padding:.5rem .8rem; font-size:.82rem; color:#2c3e50; vertical-align:middle; }
 
     .kl-btn-detail {
-        display:inline-block; border:1px solid #bbb;
+        display:inline-block; border:1px solid #007bff;
         background:#fff; color:#333; border-radius:.22rem;
         padding:.22rem .8rem; font-size:.77rem;
         text-decoration:none; white-space:nowrap;
     }
-    .kl-btn-detail:hover { background:#efefef; color:#333; }
+    .kl-btn-detail:hover { background:#007bff; border-color:#007bff; color:#fff; }
 
     .kl-empty { text-align:center; padding:1.8rem 1rem; color:#666; font-size:.86rem; }
 

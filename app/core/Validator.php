@@ -193,11 +193,69 @@ class Validator
     }
 
     // ----------------------------------------------------------------
+    // Telefoonnummer / Mobiel
+    // ----------------------------------------------------------------
+
+    /**
+     * Valideert een Nederlands telefoonnummer.
+     * Accepteert formaten zoals: 0612345678, +31612345678, 06-12345678, etc.
+     */
+    public static function isGeldigTelefoonnummer(string $telefoon): bool
+    {
+        // Verwijder spaties, streepjes, haakjes en punten voor validatie
+        $gezuiverd = preg_replace('/[\s\-\(\)\.]/', '', $telefoon);
+        
+        // Moet beginnen met 0 of +31 (Nederlandse landcode)
+        // Moet 9-10 cijfers bevatten (exclusief landcode)
+        return (bool) preg_match('/^(\+31|0)[0-9]{9}$/', $gezuiverd);
+    }
+
+    /**
+     * Geeft foutmelding terug als telefoonnummer ongeldig is, anders null.
+     */
+    public static function foutTelefoonnummer(string $telefoon, string $label = 'Telefoonnummer'): ?string
+    {
+        if (empty(trim($telefoon))) {
+            return "{$label} is verplicht";
+        }
+        if (!self::isGeldigTelefoonnummer($telefoon)) {
+            return "Voer een geldig telefoonnummer in (bijv. 0612345678 of +31612345678)";
+        }
+        return null;
+    }
+
+    // ----------------------------------------------------------------
     // Verplicht tekstveld
     // ----------------------------------------------------------------
 
     public static function foutVerplicht(string $waarde, string $label): ?string
     {
         return empty(trim($waarde)) ? "{$label} is verplicht" : null;
+    }
+
+    // ----------------------------------------------------------------
+    // Naam validatie (geen nummers toegestaan)
+    // ----------------------------------------------------------------
+
+    /**
+     * Controleert of een naam geen nummers bevat.
+     */
+    public static function isGeldigeNaam(string $naam): bool
+    {
+        return !preg_match('/[0-9]/', $naam);
+    }
+
+    /**
+     * Geeft foutmelding terug als naam nummers bevat, anders null.
+     */
+    public static function foutNaam(string $naam, string $label = 'Naam'): ?string
+    {
+        if (empty(trim($naam))) {
+            return "{$label} is verplicht";
+        }
+        if (!self::isGeldigeNaam($naam)) {
+            return "{$label} mag geen nummers bevatten";
+        }
+        return null;
     }
 }

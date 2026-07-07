@@ -275,80 +275,86 @@ END$$
 DELIMITER ;
 
 -- ------------------------------------------------------------
--- Stored Procedure: sp_UpdateKlantGegevens
--- Beschrijving: Wijzigt klantgegevens en bijbehorende contactgegevens
--- Parameters: alle klant- en contactvelden
+-- Stored Procedure: sp_UpdateMedewerkerGegevens
+-- Beschrijving: Wijzigt medewerkergegevens en bijbehorende contactgegevens
+-- Validatie: minderjarige (<18) mag geen specialisatie 'Permanent' krijgen
+-- Parameters: alle medewerker- en contactvelden + OUT success/message
 -- ------------------------------------------------------------
 DELIMITER $$
-CREATE PROCEDURE sp_UpdateKlantGegevens(
-    IN p_klant_id INT,
-    IN p_contact_email VARCHAR(255),
-    IN p_straatnaam VARCHAR(255),
-    IN p_huisnummer VARCHAR(20),
-    IN p_toevoeging VARCHAR(20),
-    IN p_postcode VARCHAR(10),
-    IN p_plaats VARCHAR(100),
-    IN p_mobiel VARCHAR(20),
-    IN p_bijzonderheden TEXT,
-    OUT p_success BOOLEAN,
-    OUT p_message VARCHAR(255)
+CREATE PROCEDURE sp_UpdateMedewerkerGegevens(
+    IN  p_medewerker_id  INT,
+    IN  p_voornaam       VARCHAR(100),
+    IN  p_tussenvoegsel  VARCHAR(50),
+    IN  p_achternaam     VARCHAR(100),
+    IN  p_specialisatie  VARCHAR(100),
+    IN  p_geboortedatum  DATE,
+    IN  p_contact_email  VARCHAR(255),
+    IN  p_straatnaam     VARCHAR(255),
+    IN  p_huisnummer     VARCHAR(20),
+    IN  p_toevoeging     VARCHAR(20),
+    IN  p_postcode       VARCHAR(10),
+    IN  p_plaats         VARCHAR(100),
+    IN  p_mobiel         VARCHAR(20),
+    IN  p_opmerking      VARCHAR(255),
+    OUT p_success        BOOLEAN,
+    OUT p_message        VARCHAR(500)
 )
 BEGIN
     DECLARE v_contact_id INT;
-    DECLARE v_email_exists INT;
+    DECLARE v_leeftijd   INT;
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         SET p_success = FALSE;
-        SET p_message = 'Database fout bij het wijzigen van klantgegevens';
+        SET p_message = 'Database fout bij het wijzigen van medewerkergegevens';
         ROLLBACK;
     END;
 
     START TRANSACTION;
 
-    -- Haal ContactId op voor deze klant
-    SELECT c.Id INTO v_contact_id
-    FROM Contact c
-    INNER JOIN KlantPerContact kpc ON kpc.ContactId = c.Id
-    WHERE kpc.KlantId = p_klant_id AND kpc.IsActief = 1 AND c.IsActief = 1
-    LIMIT 1;
+    -- Bereken leeftijd op basis van geboortedatum
+    SET v_leeftijd = TIMESTAMPDIFF(YEAR, p_geboortedatum, CURDATE());
 
-    IF v_contact_id IS NULL THEN
+    -- Validatie: minderjarige mag geen specialisatie 'Permanent' krijgen
+    IF v_leeftijd < 18 AND p_specialisatie = 'Permanent' THEN
         SET p_success = FALSE;
-        SET p_message = 'Contactgegevens niet gevonden voor deze klant';
+        SET p_message = 'Minderjarige medewerkers mogen geen specialisatie Permanent toegewezen krijgen vanwege het werken met gevaarlijke stoffen en chemicaliën.';
         ROLLBACK;
     ELSE
-        -- Check of email al bestaat bij een ander contact
-        SELECT COUNT(*) INTO v_email_exists
-        FROM Contact
-        WHERE Email = p_contact_email AND Id != v_contact_id AND IsActief = 1;
+        -- Haal ContactId op voor deze medewerker
+        SELECT c.Id INTO v_contact_id
+        FROM Contact c
+        INNER JOIN MedewerkerPerContact mpc ON mpc.ContactId = c.Id
+        WHERE mpc.MedewerkerId = p_medewerker_id AND mpc.IsActief = 1 AND c.IsActief = 1
+        LIMIT 1;
 
-        IF v_email_exists > 0 THEN
-            SET p_success = FALSE;
-            SET p_message = 'Het e-mailadres is al in gebruik';
-            ROLLBACK;
-        ELSE
-            -- Update Klant bijzonderheden
-            UPDATE Klant 
-            SET Bijzonderheden = p_bijzonderheden,
-                DatumGewijzigd = CURRENT_TIMESTAMP(6)
-            WHERE Id = p_klant_id;
+        -- Update Medewerker
+        UPDATE Medewerker
+        SET Voornaam      = p_voornaam,
+            Tussenvoegsel = p_tussenvoegsel,
+            Achternaam    = p_achternaam,
+            Specialisatie = p_specialisatie,
+            Geboortedatum = p_geboortedatum,
+            Opmerking     = p_opmerking,
+            DatumGewijzigd = CURRENT_TIMESTAMP(6)
+        WHERE Id = p_medewerker_id;
 
-            -- Update Contact gegevens
+        -- Update Contact indien gevonden
+        IF v_contact_id IS NOT NULL THEN
             UPDATE Contact
-            SET Email = p_contact_email,
-                Straatnaam = p_straatnaam,
-                Huisnummer = p_huisnummer,
-                Toevoeging = p_toevoeging,
-                Postcode = p_postcode,
-                Plaats = p_plaats,
-                Mobiel = p_mobiel,
+            SET Email          = p_contact_email,
+                Straatnaam     = p_straatnaam,
+                Huisnummer     = p_huisnummer,
+                Toevoeging     = p_toevoeging,
+                Postcode       = p_postcode,
+                Plaats         = p_plaats,
+                Mobiel         = p_mobiel,
                 DatumGewijzigd = CURRENT_TIMESTAMP(6)
             WHERE Id = v_contact_id;
-
-            SET p_success = TRUE;
-            SET p_message = 'Klantgegevens succesvol bijgewerkt';
-            COMMIT;
         END IF;
+
+        SET p_success = TRUE;
+        SET p_message = 'Medewerkergegevens succesvol bijgewerkt';
+        COMMIT;
     END IF;
 END$$
 DELIMITER ;

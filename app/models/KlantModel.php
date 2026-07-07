@@ -118,13 +118,17 @@ class KlantModel
         try {
             $stmt = $this->pdo->prepare(
                 'CALL sp_UpdateKlantGegevens(
-                    :klant_id, :contact_email, :straatnaam, :huisnummer,
+                    :klant_id, :voornaam, :tussenvoegsel, :achternaam,
+                    :contact_email, :straatnaam, :huisnummer,
                     :toevoeging, :postcode, :plaats, :mobiel, :bijzonderheden,
                     @p_success, @p_message
                 )'
             );
             $stmt->execute([
                 ':klant_id'       => $klantId,
+                ':voornaam'       => $data['voornaam'],
+                ':tussenvoegsel'  => $data['tussenvoegsel'] ?: null,
+                ':achternaam'     => $data['achternaam'],
                 ':contact_email'  => $data['contact_email'],
                 ':straatnaam'     => $data['straatnaam'],
                 ':huisnummer'     => $data['huisnummer'],

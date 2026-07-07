@@ -169,4 +169,49 @@ class ValidatorTest extends TestCase
             $this->assertFalse(Validator::isGeldigePostcode($p));
         }
     }
+
+    // ================================================================
+    // TELEFOONNUMMER VALIDATIE
+    // ================================================================
+
+    /** @test */
+    public function testGeldigeTelefoonnummers(): void
+    {
+        $geldig = ['0612345678', '+31612345678', '06-12345678', '06 12345678', '+31 6 12345678'];
+        foreach ($geldig as $t) {
+            $this->assertTrue(Validator::isGeldigTelefoonnummer($t), "Verwacht geldig telefoonnummer: '{$t}'");
+        }
+    }
+
+    /** @test */
+    public function testOngeldigeTelefoonnummers(): void
+    {
+        $ongeldig = ['', '123', 'abc', '06123', '06123456789', '+3161234567890', '0612345678a'];
+        foreach ($ongeldig as $t) {
+            $this->assertFalse(Validator::isGeldigTelefoonnummer($t), "Verwacht ongeldig telefoonnummer: '{$t}'");
+        }
+    }
+
+    /** @test */
+    public function testLeegTelefoonnummerGeeftVerplichtFout(): void
+    {
+        $fout = Validator::foutTelefoonnummer('');
+        $this->assertNotNull($fout);
+        $this->assertStringContainsString('verplicht', $fout);
+    }
+
+    /** @test */
+    public function testOngeldigTelefoonnummerGeeftFout(): void
+    {
+        $fout = Validator::foutTelefoonnummer('06123');
+        $this->assertNotNull($fout);
+        $this->assertStringContainsString('geldig telefoonnummer', $fout);
+    }
+
+    /** @test */
+    public function testGeldigTelefoonnummerGeeftGeenFout(): void
+    {
+        $this->assertNull(Validator::foutTelefoonnummer('0612345678'));
+        $this->assertNull(Validator::foutTelefoonnummer('+31612345678'));
+    }
 }

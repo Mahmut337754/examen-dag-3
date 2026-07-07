@@ -121,7 +121,8 @@ class MedewerkerModel
         try {
             $stmt = $this->pdo->prepare(
                 'CALL sp_UpdateMedewerkerGegevens(
-                    :id, :specialisatie, :geboortedatum, :contact_email,
+                    :id, :voornaam, :tussenvoegsel, :achternaam,
+                    :specialisatie, :geboortedatum, :contact_email,
                     :straatnaam, :huisnummer, :toevoeging, :postcode,
                     :plaats, :mobiel, :opmerking,
                     @p_success, @p_message
@@ -129,6 +130,9 @@ class MedewerkerModel
             );
             $stmt->execute([
                 ':id'            => $id,
+                ':voornaam'      => $data['voornaam'],
+                ':tussenvoegsel' => $data['tussenvoegsel'] ?: null,
+                ':achternaam'    => $data['achternaam'],
                 ':specialisatie' => $data['specialisatie'],
                 ':geboortedatum' => $data['geboortedatum'],
                 ':contact_email' => $data['contact_email'],

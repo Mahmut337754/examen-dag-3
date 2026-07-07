@@ -1,11 +1,9 @@
 ﻿<?php
-$naam = htmlspecialchars(
-    $klant['Voornaam']
-    . ($klant['Tussenvoegsel'] ? ' ' . $klant['Tussenvoegsel'] : '')
-    . ' ' . $klant['Achternaam'],
-    ENT_QUOTES, 'UTF-8'
-);
+// Foutmeldingen
 $errors          = $flash['errors'] ?? [];
+$voornaamErr     = $errors['voornaam']     ?? '';
+$tussenvoegselErr = $errors['tussenvoegsel'] ?? '';
+$achternaamErr   = $errors['achternaam']   ?? '';
 $contactEmailErr = $errors['contact_email'] ?? '';
 $straatnaamErr   = $errors['straatnaam']    ?? '';
 $huisnummerErr   = $errors['huisnummer']    ?? '';
@@ -88,7 +86,7 @@ $mobielErr       = $errors['mobiel']        ?? '';
 </div>
 
 <!-- Titel -->
-<h1 class="kw-h1"><span>Klant wijzigen</span> <?= $naam ?></h1>
+<h1 class="kw-h1"><span>Klant wijzigen</span></h1>
 
 <!-- Flash foutbericht -->
 <?php if (!empty($flash) && $flash['type'] === 'error'): ?>
@@ -106,8 +104,17 @@ $mobielErr       = $errors['mobiel']        ?? '';
         <!-- Naam + Relatienummer -->
         <div class="kw-row">
             <div class="kw-grp">
-                <label class="kw-lbl">Naam <span class="req">*</span></label>
-                <input type="text" class="kw-input" value="<?= $naam ?>" disabled>
+                <label class="kw-lbl" for="voornaam">Voornaam <span class="req">*</span></label>
+                <input
+                    type="text"
+                    id="voornaam"
+                    name="voornaam"
+                    class="kw-input <?= $voornaamErr ? 'err' : '' ?>"
+                    value="<?= htmlspecialchars($klant['Voornaam'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                >
+                <?php if ($voornaamErr): ?>
+                    <div class="kw-err"><?= htmlspecialchars($voornaamErr, ENT_QUOTES, 'UTF-8') ?></div>
+                <?php endif; ?>
             </div>
             <div class="kw-grp">
                 <label class="kw-lbl">Relatienummer</label>
@@ -115,15 +122,44 @@ $mobielErr       = $errors['mobiel']        ?? '';
             </div>
         </div>
 
+        <!-- Tussenvoegsel + Achternaam -->
+        <div class="kw-row">
+            <div class="kw-grp">
+                <label class="kw-lbl" for="tussenvoegsel">Tussenvoegsel</label>
+                <input
+                    type="text"
+                    id="tussenvoegsel"
+                    name="tussenvoegsel"
+                    class="kw-input <?= $tussenvoegselErr ? 'err' : '' ?>"
+                    value="<?= htmlspecialchars($klant['Tussenvoegsel'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                >
+                <?php if ($tussenvoegselErr): ?>
+                    <div class="kw-err"><?= htmlspecialchars($tussenvoegselErr, ENT_QUOTES, 'UTF-8') ?></div>
+                <?php endif; ?>
+            </div>
+            <div class="kw-grp">
+                <label class="kw-lbl" for="achternaam">Achternaam <span class="req">*</span></label>
+                <input
+                    type="text"
+                    id="achternaam"
+                    name="achternaam"
+                    class="kw-input <?= $achternaamErr ? 'err' : '' ?>"
+                    value="<?= htmlspecialchars($klant['Achternaam'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                >
+                <?php if ($achternaamErr): ?>
+                    <div class="kw-err"><?= htmlspecialchars($achternaamErr, ENT_QUOTES, 'UTF-8') ?></div>
+                <?php endif; ?>
+            </div>
+        </div>
+
         <!-- Contact e-mail + Account e-mail -->
         <div class="kw-row">
             <div class="kw-grp">
-                <label class="kw-lbl" for="contact_email">Contact e-mail <span class="req">*</span></label>
+                <label class="kw-lbl" for="contact_email">Contact e-mail</label>
                 <input
                     type="email" id="contact_email" name="contact_email"
                     class="kw-input <?= $contactEmailErr ? 'err' : '' ?>"
                     value="<?= htmlspecialchars($klant['Email'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                    required
                 >
                 <?php if ($contactEmailErr): ?>
                     <div class="kw-err"><?= htmlspecialchars($contactEmailErr, ENT_QUOTES, 'UTF-8') ?></div>
@@ -143,7 +179,6 @@ $mobielErr       = $errors['mobiel']        ?? '';
                     type="text" id="straatnaam" name="straatnaam"
                     class="kw-input <?= $straatnaamErr ? 'err' : '' ?>"
                     value="<?= htmlspecialchars($klant['Straatnaam'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                    required
                 >
                 <?php if ($straatnaamErr): ?>
                     <div class="kw-err"><?= htmlspecialchars($straatnaamErr, ENT_QUOTES, 'UTF-8') ?></div>
@@ -156,7 +191,6 @@ $mobielErr       = $errors['mobiel']        ?? '';
                         type="text" id="huisnummer" name="huisnummer"
                         class="kw-input <?= $huisnummerErr ? 'err' : '' ?>"
                         value="<?= htmlspecialchars($klant['Huisnummer'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                        required
                     >
                     <?php if ($huisnummerErr): ?>
                         <div class="kw-err"><?= htmlspecialchars($huisnummerErr, ENT_QUOTES, 'UTF-8') ?></div>
@@ -181,7 +215,6 @@ $mobielErr       = $errors['mobiel']        ?? '';
                     type="text" id="postcode" name="postcode"
                     class="kw-input <?= $postcodeErr ? 'err' : '' ?>"
                     value="<?= htmlspecialchars($klant['Postcode'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                    required
                 >
                 <?php if ($postcodeErr): ?>
                     <div class="kw-err"><?= htmlspecialchars($postcodeErr, ENT_QUOTES, 'UTF-8') ?></div>
@@ -193,7 +226,6 @@ $mobielErr       = $errors['mobiel']        ?? '';
                     type="text" id="plaats" name="plaats"
                     class="kw-input <?= $plaatsErr ? 'err' : '' ?>"
                     value="<?= htmlspecialchars($klant['Plaats'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                    required
                 >
                 <?php if ($plaatsErr): ?>
                     <div class="kw-err"><?= htmlspecialchars($plaatsErr, ENT_QUOTES, 'UTF-8') ?></div>
@@ -209,7 +241,6 @@ $mobielErr       = $errors['mobiel']        ?? '';
                     type="tel" id="mobiel" name="mobiel"
                     class="kw-input <?= $mobielErr ? 'err' : '' ?>"
                     value="<?= htmlspecialchars($klant['Mobiel'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                    required
                 >
                 <?php if ($mobielErr): ?>
                     <div class="kw-err"><?= htmlspecialchars($mobielErr, ENT_QUOTES, 'UTF-8') ?></div>

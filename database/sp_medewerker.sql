@@ -92,6 +92,9 @@ DROP PROCEDURE IF EXISTS sp_UpdateMedewerkerGegevens;
 DELIMITER $$
 CREATE PROCEDURE sp_UpdateMedewerkerGegevens(
     IN  p_medewerker_id  INT,
+    IN  p_voornaam       VARCHAR(100),
+    IN  p_tussenvoegsel  VARCHAR(50),
+    IN  p_achternaam     VARCHAR(100),
     IN  p_specialisatie  VARCHAR(100),
     IN  p_geboortedatum  DATE,
     IN  p_contact_email  VARCHAR(255),
@@ -135,9 +138,12 @@ BEGIN
 
         -- Update Medewerker
         UPDATE Medewerker
-        SET Specialisatie  = p_specialisatie,
-            Geboortedatum  = p_geboortedatum,
-            Opmerking      = p_opmerking,
+        SET Voornaam      = p_voornaam,
+            Tussenvoegsel = p_tussenvoegsel,
+            Achternaam    = p_achternaam,
+            Specialisatie = p_specialisatie,
+            Geboortedatum = p_geboortedatum,
+            Opmerking     = p_opmerking,
             DatumGewijzigd = CURRENT_TIMESTAMP(6)
         WHERE Id = p_medewerker_id;
 

@@ -209,7 +209,7 @@ if (!function_exists('medewerkerUrl')) {
     /* Details knop – exact als wireframe: rand, wit bg */
     .mw-btn-detail {
         display: inline-block;
-        border: 1px solid #bbb;
+        border: 1px solid #007bff;
         background: #fff;
         color: #333;
         border-radius: .22rem;
@@ -219,7 +219,7 @@ if (!function_exists('medewerkerUrl')) {
         white-space: nowrap;
         transition: background .1s;
     }
-    .mw-btn-detail:hover { background: #efefef; color: #333; }
+    .mw-btn-detail:hover { background: #007bff; border-color: #007bff; color: #fff; }
 
     /* Leeg bericht */
     .mw-empty {
@@ -352,4 +352,5 @@ if (!function_exists('medewerkerUrl')) {
     </table>
 
 </div>
-
+
+

@@ -79,6 +79,9 @@ DROP PROCEDURE IF EXISTS sp_UpdateKlantGegevens;
 DELIMITER $$
 CREATE PROCEDURE sp_UpdateKlantGegevens(
     IN p_klant_id INT,
+    IN p_voornaam VARCHAR(100),
+    IN p_tussenvoegsel VARCHAR(50),
+    IN p_achternaam VARCHAR(100),
     IN p_contact_email VARCHAR(255),
     IN p_straatnaam VARCHAR(255),
     IN p_huisnummer VARCHAR(20),
@@ -124,9 +127,12 @@ BEGIN
             SET p_message = 'Het e-mailadres is al in gebruik';
             ROLLBACK;
         ELSE
-            -- Update Klant bijzonderheden
+        -- Update Klant gegevens
             UPDATE Klant 
-            SET Bijzonderheden = p_bijzonderheden,
+            SET Voornaam      = p_voornaam,
+                Tussenvoegsel = p_tussenvoegsel,
+                Achternaam    = p_achternaam,
+                Bijzonderheden = p_bijzonderheden,
                 DatumGewijzigd = CURRENT_TIMESTAMP(6)
             WHERE Id = p_klant_id;
 

@@ -1,13 +1,9 @@
 ﻿<?php
-$naam = htmlspecialchars(
-    $medewerker['Voornaam']
-    . ($medewerker['Tussenvoegsel'] ? ' ' . $medewerker['Tussenvoegsel'] : '')
-    . ' ' . $medewerker['Achternaam'],
-    ENT_QUOTES, 'UTF-8'
-);
-
 // Foutmeldingen
 $errors           = $flash['errors'] ?? [];
+$voornaamErr      = $errors['voornaam'] ?? '';
+$tussenvoegselErr = $errors['tussenvoegsel'] ?? '';
+$achternaamErr    = $errors['achternaam'] ?? '';
 $specialisatieErr = $errors['specialisatie'] ?? '';
 $geboortedatumErr = $errors['geboortedatum'] ?? '';
 $contactEmailErr  = $errors['contact_email'] ?? '';
@@ -125,7 +121,7 @@ $mobielErr        = $errors['mobiel'] ?? '';
 </div>
 
 <!-- Titel -->
-<h1 class="mw-h1"><span>Medewerker wijzigen</span> <?= $naam ?></h1>
+<h1 class="mw-h1"><span>Medewerker wijzigen</span></h1>
 
 <!-- Flash bericht -->
 <?php if ($flash && $flash['type'] === 'error'): ?>
@@ -141,11 +137,20 @@ $mobielErr        = $errors['mobiel'] ?? '';
 
     <div class="mw-card">
 
-        <!-- Rij 1: Naam + Specialisatie -->
+        <!-- Rij 1: Voornaam + Specialisatie -->
         <div class="mw-form-row">
             <div class="mw-form-group">
-                <label class="mw-lbl">Naam <span class="req">*</span></label>
-                <input type="text" class="mw-input" value="<?= $naam ?>" disabled>
+                <label class="mw-lbl" for="voornaam">Voornaam <span class="req">*</span></label>
+                <input
+                    type="text"
+                    id="voornaam"
+                    name="voornaam"
+                    class="mw-input <?= $voornaamErr ? 'error' : '' ?>"
+                    value="<?= htmlspecialchars($medewerker['Voornaam'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                >
+                <?php if ($voornaamErr): ?>
+                    <div class="mw-error-msg"><?= htmlspecialchars($voornaamErr, ENT_QUOTES, 'UTF-8') ?></div>
+                <?php endif; ?>
             </div>
             <div class="mw-form-group">
                 <label class="mw-lbl" for="specialisatie">Specialisatie <span class="req">*</span></label>
@@ -153,7 +158,6 @@ $mobielErr        = $errors['mobiel'] ?? '';
                     id="specialisatie"
                     name="specialisatie"
                     class="mw-select <?= $specialisatieErr ? 'error' : '' ?>"
-                    required
                 >
                     <?php foreach ($specialisaties as $spec): ?>
                         <option value="<?= htmlspecialchars($spec, ENT_QUOTES, 'UTF-8') ?>"
@@ -168,7 +172,37 @@ $mobielErr        = $errors['mobiel'] ?? '';
             </div>
         </div>
 
-        <!-- Rij 2: Geboortedatum + Contact e-mail -->
+        <!-- Rij 2: Tussenvoegsel + Achternaam -->
+        <div class="mw-form-row">
+            <div class="mw-form-group">
+                <label class="mw-lbl" for="tussenvoegsel">Tussenvoegsel</label>
+                <input
+                    type="text"
+                    id="tussenvoegsel"
+                    name="tussenvoegsel"
+                    class="mw-input <?= $tussenvoegselErr ? 'error' : '' ?>"
+                    value="<?= htmlspecialchars($medewerker['Tussenvoegsel'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                >
+                <?php if ($tussenvoegselErr): ?>
+                    <div class="mw-error-msg"><?= htmlspecialchars($tussenvoegselErr, ENT_QUOTES, 'UTF-8') ?></div>
+                <?php endif; ?>
+            </div>
+            <div class="mw-form-group">
+                <label class="mw-lbl" for="achternaam">Achternaam <span class="req">*</span></label>
+                <input
+                    type="text"
+                    id="achternaam"
+                    name="achternaam"
+                    class="mw-input <?= $achternaamErr ? 'error' : '' ?>"
+                    value="<?= htmlspecialchars($medewerker['Achternaam'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                >
+                <?php if ($achternaamErr): ?>
+                    <div class="mw-error-msg"><?= htmlspecialchars($achternaamErr, ENT_QUOTES, 'UTF-8') ?></div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Rij 3: Geboortedatum + Contact e-mail -->
         <div class="mw-form-row">
             <div class="mw-form-group">
                 <label class="mw-lbl" for="geboortedatum">Geboortedatum <span class="req">*</span></label>
@@ -178,21 +212,19 @@ $mobielErr        = $errors['mobiel'] ?? '';
                     name="geboortedatum"
                     class="mw-input <?= $geboortedatumErr ? 'error' : '' ?>"
                     value="<?= htmlspecialchars($medewerker['Geboortedatum'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                    required
                 >
                 <?php if ($geboortedatumErr): ?>
                     <div class="mw-error-msg"><?= htmlspecialchars($geboortedatumErr, ENT_QUOTES, 'UTF-8') ?></div>
                 <?php endif; ?>
             </div>
             <div class="mw-form-group">
-                <label class="mw-lbl" for="contact_email">Contact e-mail <span class="req">*</span></label>
+                <label class="mw-lbl" for="contact_email">Contact e-mail</label>
                 <input
                     type="email"
                     id="contact_email"
                     name="contact_email"
                     class="mw-input <?= $contactEmailErr ? 'error' : '' ?>"
                     value="<?= htmlspecialchars($medewerker['ContactEmail'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                    required
                 >
                 <?php if ($contactEmailErr): ?>
                     <div class="mw-error-msg"><?= htmlspecialchars($contactEmailErr, ENT_QUOTES, 'UTF-8') ?></div>
@@ -238,7 +270,6 @@ $mobielErr        = $errors['mobiel'] ?? '';
                         name="huisnummer"
                         class="mw-input <?= $huisnummerErr ? 'error' : '' ?>"
                         value="<?= htmlspecialchars($medewerker['Huisnummer'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                        required
                     >
                     <?php if ($huisnummerErr): ?>
                         <div class="mw-error-msg"><?= htmlspecialchars($huisnummerErr, ENT_QUOTES, 'UTF-8') ?></div>
@@ -257,14 +288,13 @@ $mobielErr        = $errors['mobiel'] ?? '';
             </div>
             <div class="mw-form-group">
                 <label class="mw-lbl" for="postcode">Postcode <span class="req">*</span></label>
-                <input
-                    type="text"
-                    id="postcode"
-                    name="postcode"
-                    class="mw-input <?= $postcodeErr ? 'error' : '' ?>"
-                    value="<?= htmlspecialchars($medewerker['Postcode'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                    required
-                >
+                    <input
+                        type="text"
+                        id="postcode"
+                        name="postcode"
+                        class="mw-input <?= $postcodeErr ? 'error' : '' ?>"
+                        value="<?= htmlspecialchars($medewerker['Postcode'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                    >
                 <?php if ($postcodeErr): ?>
                     <div class="mw-error-msg"><?= htmlspecialchars($postcodeErr, ENT_QUOTES, 'UTF-8') ?></div>
                 <?php endif; ?>
@@ -275,28 +305,26 @@ $mobielErr        = $errors['mobiel'] ?? '';
         <div class="mw-form-row">
             <div class="mw-form-group">
                 <label class="mw-lbl" for="plaats">Plaats <span class="req">*</span></label>
-                <input
-                    type="text"
-                    id="plaats"
-                    name="plaats"
-                    class="mw-input <?= $plaatsErr ? 'error' : '' ?>"
-                    value="<?= htmlspecialchars($medewerker['Plaats'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                    required
-                >
+                    <input
+                        type="text"
+                        id="plaats"
+                        name="plaats"
+                        class="mw-input <?= $plaatsErr ? 'error' : '' ?>"
+                        value="<?= htmlspecialchars($medewerker['Plaats'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                    >
                 <?php if ($plaatsErr): ?>
                     <div class="mw-error-msg"><?= htmlspecialchars($plaatsErr, ENT_QUOTES, 'UTF-8') ?></div>
                 <?php endif; ?>
             </div>
             <div class="mw-form-group">
                 <label class="mw-lbl" for="mobiel">Mobiel <span class="req">*</span></label>
-                <input
-                    type="tel"
-                    id="mobiel"
-                    name="mobiel"
-                    class="mw-input <?= $mobielErr ? 'error' : '' ?>"
-                    value="<?= htmlspecialchars($medewerker['Mobiel'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                    required
-                >
+                    <input
+                        type="tel"
+                        id="mobiel"
+                        name="mobiel"
+                        class="mw-input <?= $mobielErr ? 'error' : '' ?>"
+                        value="<?= htmlspecialchars($medewerker['Mobiel'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                    >
                 <?php if ($mobielErr): ?>
                     <div class="mw-error-msg"><?= htmlspecialchars($mobielErr, ENT_QUOTES, 'UTF-8') ?></div>
                 <?php endif; ?>
@@ -321,4 +349,5 @@ $mobielErr        = $errors['mobiel'] ?? '';
         </div>
     </div>
 </form>
-
+
+
