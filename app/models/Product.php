@@ -68,10 +68,8 @@ class Product
                     p.ean_code,
                     p.voorraad,
                     p.leverancier_id,
-                    l.naam AS leverancier_naam,
                     p.prijs
                 FROM `producten` p
-                INNER JOIN `leveranciers` l ON l.id = p.leverancier_id
                 WHERE p.id = :id
                 LIMIT 1
             ';
