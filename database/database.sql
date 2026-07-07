@@ -1,465 +1,437 @@
--- ============================================================
--- Kniploket Tiko - Database Creation Script
+-- =====================================================
+-- Database: kniploket_tiko1
+-- =====================================================
 
-DROP DATABASE IF EXISTS kniploket_tiko;
-CREATE DATABASE kniploket_tiko
-    CHARACTER SET utf8mb4
+-- Drop en hermaak de database zodat het script meerdere keren uitvoerbaar is
+DROP DATABASE IF EXISTS `kniploket_tiko1`;
+
+CREATE DATABASE `kniploket_tiko1`
+    DEFAULT CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
-USE kniploket_tiko;
 
--- ------------------------------------------------------------
--- Table: users
--- ------------------------------------------------------------
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    email_verified_at DATETIME NULL DEFAULT NULL,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL,
-    remember_token VARCHAR(100) NULL DEFAULT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    IsActief BIT(1) NOT NULL DEFAULT 1,
-    Opmerking VARCHAR(255) NULL DEFAULT NULL,
-    DatumAangemaakt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    DatumGewijzigd DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
+USE `kniploket_tiko1`;
+
+-- -------------------------------------------------------
+-- Tabel: rollen
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `rollen` (
+    `id`   INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `naam` VARCHAR(50)  NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_naam` (`naam`)
 ) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- Table: Klant
--- ------------------------------------------------------------
-CREATE TABLE Klant (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    UserId INT NOT NULL,
-    Voornaam VARCHAR(100) NOT NULL,
-    Tussenvoegsel VARCHAR(50) NULL DEFAULT NULL,
-    Achternaam VARCHAR(100) NOT NULL,
-    Relatienummer VARCHAR(50) NOT NULL UNIQUE,
-    Bijzonderheden TEXT NULL DEFAULT NULL,
-    IsActief BIT(1) NOT NULL DEFAULT 1,
-    Opmerking VARCHAR(255) NULL DEFAULT NULL,
-    DatumAangemaakt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    DatumGewijzigd DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    CONSTRAINT fk_klant_user FOREIGN KEY (UserId) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE
+-- -------------------------------------------------------
+-- Tabel: gebruikers
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gebruikers` (
+    `id`            INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    `naam`          VARCHAR(100)  NOT NULL,
+    `email`         VARCHAR(255)  NOT NULL,
+    `wachtwoord`    VARCHAR(255)  NOT NULL COMMENT 'bcrypt hash',
+    `rol_id`        INT UNSIGNED  NOT NULL,
+    `is_actief`     TINYINT(1)    NOT NULL DEFAULT 1,
+    `aangemaakt_op` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `gewijzigd_op`  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_email` (`email`),
+    KEY `fk_gebruikers_rol` (`rol_id`),
+    CONSTRAINT `fk_gebruikers_rol`
+        FOREIGN KEY (`rol_id`)
+        REFERENCES `rollen` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- Table: Medewerker
--- ------------------------------------------------------------
-CREATE TABLE Medewerker (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    UserId INT NOT NULL,
-    Voornaam VARCHAR(100) NOT NULL,
-    Tussenvoegsel VARCHAR(50) NULL DEFAULT NULL,
-    Achternaam VARCHAR(100) NOT NULL,
-    Specialisatie VARCHAR(100) NOT NULL,
-    Geboortedatum DATE NOT NULL,
-    IsActief BIT(1) NOT NULL DEFAULT 1,
-    Opmerking VARCHAR(255) NULL DEFAULT NULL,
-    DatumAangemaakt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    DatumGewijzigd DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    CONSTRAINT fk_medewerker_user FOREIGN KEY (UserId) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE
+-- -------------------------------------------------------
+-- Tabel: klanten
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `klanten` (
+    `id`             INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    `gebruiker_id`   INT UNSIGNED  NOT NULL,
+    `adres`          VARCHAR(255)  DEFAULT NULL,
+    `telefoonnummer` VARCHAR(20)   DEFAULT NULL,
+    `allergieen`     TEXT          DEFAULT NULL,
+    `wensen`         TEXT          DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_gebruiker_id` (`gebruiker_id`),
+    CONSTRAINT `fk_klanten_gebruiker`
+        FOREIGN KEY (`gebruiker_id`)
+        REFERENCES `gebruikers` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- Table: Contact
--- ------------------------------------------------------------
-CREATE TABLE Contact (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Straatnaam VARCHAR(255) NOT NULL,
-    Huisnummer VARCHAR(20) NOT NULL,
-    Toevoeging VARCHAR(20) NULL DEFAULT NULL,
-    Postcode VARCHAR(10) NOT NULL,
-    Plaats VARCHAR(100) NOT NULL,
-    Email VARCHAR(255) NOT NULL,
-    Mobiel VARCHAR(20) NOT NULL,
-    IsActief BIT(1) NOT NULL DEFAULT 1,
-    Opmerking VARCHAR(255) NULL DEFAULT NULL,
-    DatumAangemaakt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    DatumGewijzigd DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
+-- -------------------------------------------------------
+-- Tabel: allergenen
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `allergenen` (
+    `id`   INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `naam` VARCHAR(100) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_naam` (`naam`)
 ) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- Table: KlantPerContact
--- ------------------------------------------------------------
-CREATE TABLE KlantPerContact (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    KlantId INT NOT NULL,
-    ContactId INT NOT NULL,
-    IsActief BIT(1) NOT NULL DEFAULT 1,
-    Opmerking VARCHAR(255) NULL DEFAULT NULL,
-    DatumAangemaakt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    DatumGewijzigd DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    CONSTRAINT fk_klantpercontact_klant FOREIGN KEY (KlantId) REFERENCES Klant(Id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_klantpercontact_contact FOREIGN KEY (ContactId) REFERENCES Contact(Id) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE KEY unique_klant_contact (KlantId, ContactId)
+-- -------------------------------------------------------
+-- Tabel: klant_allergenen (koppeltabel)
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `klant_allergenen` (
+    `klant_id`     INT UNSIGNED NOT NULL,
+    `allergeen_id` INT UNSIGNED NOT NULL,
+    PRIMARY KEY (`klant_id`, `allergeen_id`),
+    CONSTRAINT `fk_ka_klant`
+        FOREIGN KEY (`klant_id`)
+        REFERENCES `klanten` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT `fk_ka_allergeen`
+        FOREIGN KEY (`allergeen_id`)
+        REFERENCES `allergenen` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- Table: MedewerkerPerContact
--- ------------------------------------------------------------
-CREATE TABLE MedewerkerPerContact (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    MedewerkerId INT NOT NULL,
-    ContactId INT NOT NULL,
-    IsActief BIT(1) NOT NULL DEFAULT 1,
-    Opmerking VARCHAR(255) NULL DEFAULT NULL,
-    DatumAangemaakt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    DatumGewijzigd DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-    CONSTRAINT fk_medewerkerpercontact_medewerker FOREIGN KEY (MedewerkerId) REFERENCES Medewerker(Id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_medewerkerpercontact_contact FOREIGN KEY (ContactId) REFERENCES Contact(Id) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE KEY unique_medewerker_contact (MedewerkerId, ContactId)
+-- -------------------------------------------------------
+-- Tabel: medewerkers
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `medewerkers` (
+    `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `gebruiker_id` INT UNSIGNED NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_gebruiker_id` (`gebruiker_id`),
+    CONSTRAINT `fk_medewerkers_gebruiker`
+        FOREIGN KEY (`gebruiker_id`)
+        REFERENCES `gebruikers` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
--- ============================================================
--- Insert Test Data
--- ============================================================
+-- -------------------------------------------------------
+-- Tabel: specialisaties
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `specialisaties` (
+    `id`   INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `naam` VARCHAR(100) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_naam` (`naam`)
+) ENGINE=InnoDB;
 
--- Users
-INSERT INTO users (id, name, email, email_verified_at, password, role, remember_token, created_at, updated_at, IsActief, Opmerking, DatumAangemaakt, DatumGewijzigd) VALUES
-(1,  'Salon Eigenaar',      'eigenaar@kniplokettiko.nl',           NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'eigenaar',   NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(2,  'Fatima El Amrani',    'fatima@kniplokettiko.nl',             NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(3,  'Sanne de Vries',      'sanne.devries@kniplokettiko.nl',      NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(4,  'Mohamed El Idrissi',  'mohamed.elidrissi@kniplokettiko.nl',  NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(5,  'Lisa van Dijk',       'lisa.vandijk@kniplokettiko.nl',       NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(6,  'Youssef Benali',      'youssef.benali@kniplokettiko.nl',     NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(7,  'Noor Bakker',         'noor.bakker@kniplokettiko.nl',        NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(8,  'Kevin Smit',          'kevin.smit@kniplokettiko.nl',         NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(9,  'Aylin Demir',         'aylin.demir@kniplokettiko.nl',        NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(10, 'Tom Verhoeven',       'tom.verhoeven@kniplokettiko.nl',      NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(11, 'Romy Jacobs',         'romy.jacobs@kniplokettiko.nl',        NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'medewerker', NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(12, 'Piet van Loenen',     'piet.van.loenen@gmail.com',           NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(13, 'Jan Jansen',          'jan.jansen@outlook.com',              NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(14, 'Saskia de Boer',      'saskia.deboer@yahoo.com',             NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(15, 'Ahmed Mansouri',      'ahmed.mansouri@icloud.com',           NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(16, 'Marieke van den Berg','marieke.vandenberg@ziggo.nl',         NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(17, 'Daan Visser',         'daan.visser@live.nl',                 NULL, '$2y$10$Y6fjYrntUS.K5v.qBNXr5eWuc1IvAbSUScYsqfwjsh0IkEOyn1te.', 'klant',      NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30');
+-- -------------------------------------------------------
+-- Tabel: medewerker_specialisatie
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `medewerker_specialisatie` (
+    `medewerker_id`    INT UNSIGNED NOT NULL,
+    `specialisatie_id` INT UNSIGNED NOT NULL,
+    PRIMARY KEY (`medewerker_id`, `specialisatie_id`),
+    CONSTRAINT `fk_ms_medewerker`
+        FOREIGN KEY (`medewerker_id`)
+        REFERENCES `medewerkers` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT `fk_ms_specialisatie`
+        FOREIGN KEY (`specialisatie_id`)
+        REFERENCES `specialisaties` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
 
--- Klant
-INSERT INTO Klant (Id, UserId, Voornaam, Tussenvoegsel, Achternaam, Relatienummer, Bijzonderheden, IsActief, Opmerking, DatumAangemaakt, DatumGewijzigd) VALUES
-(1, 12, 'Piet', 'van', 'Loenen', 'KL-2026-001', 'Voorkeur voor ochtendafspraken.', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(2, 13, 'Jan', NULL, 'Jansen', 'KL-2026-002', 'Allergie voor sterk geparfumeerde producten.', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(3, 14, 'Saskia', 'de', 'Boer', 'KL-2026-003', 'Komt elke zes weken.', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(4, 15, 'Ahmed', NULL, 'Mansouri', 'KL-2026-004', 'Wil strakke fade.', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(5, 16, 'Marieke', 'van den', 'Berg', 'KL-2026-005', 'Gevoelige hoofdhuid.', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(6, 17, 'Daan', NULL, 'Visser', 'KL-2026-006', 'Liefst einde middag.', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30');
+-- -------------------------------------------------------
+-- Tabel: werktijden
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `werktijden` (
+    `id`            INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    `medewerker_id` INT UNSIGNED  NOT NULL,
+    `dag_van_week`  TINYINT UNSIGNED NOT NULL COMMENT '1=maandag ... 7=zondag',
+    `starttijd`     TIME          NOT NULL,
+    `eindtijd`      TIME          NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_medewerker_dag` (`medewerker_id`, `dag_van_week`),
+    CONSTRAINT `fk_werktijden_medewerker`
+        FOREIGN KEY (`medewerker_id`)
+        REFERENCES `medewerkers` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
 
--- Medewerker
-INSERT INTO Medewerker (Id, UserId, Voornaam, Tussenvoegsel, Achternaam, Specialisatie, Geboortedatum, IsActief, Opmerking, DatumAangemaakt, DatumGewijzigd) VALUES
-(1, 2, 'Fatima', NULL, 'El Amrani', 'Knippen', '1988-04-12', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(2, 3, 'Sanne', 'de', 'Vries', 'Kleuren', '1996-09-25', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(3, 4, 'Mohamed', NULL, 'El Idrissi', 'Extensions', '1992-02-14', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(4, 5, 'Lisa', 'van', 'Dijk', 'Stylen', '1998-07-08', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(5, 6, 'Youssef', NULL, 'Benali', 'Knippen', '1990-11-30', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(6, 7, 'Noor', NULL, 'Bakker', 'Kleuren', '1997-05-21', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(7, 8, 'Kevin', NULL, 'Smit', 'Extensions', '2001-03-17', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(8, 9, 'Aylin', NULL, 'Demir', 'Stylen', '1999-12-04', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(9, 10, 'Tom', NULL, 'Verhoeven', 'Knippen', '1995-08-19', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(10, 11, 'Romy', NULL, 'Jacobs', 'Knippen', '2010-01-15', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30');
+-- -------------------------------------------------------
+-- Tabel: leveranciers
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `leveranciers` (
+    `id`   INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    `naam` VARCHAR(150)  NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_naam` (`naam`)
+) ENGINE=InnoDB;
 
--- Contact
-INSERT INTO Contact (Id, Straatnaam, Huisnummer, Toevoeging, Postcode, Plaats, Email, Mobiel, IsActief, Opmerking, DatumAangemaakt, DatumGewijzigd) VALUES
-(1, 'Kanaalstraat', '12', NULL, '3511AB', 'Utrecht', 'fatima@kniplokettiko.nl', '0612345678', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(2, 'Croeselaan', '101', NULL, '3521BJ', 'Utrecht', 'sanne.devries@kniplokettiko.nl', '0611111111', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(3, 'Amsterdamsestraatweg', '223', NULL, '3551CG', 'Utrecht', 'mohamed.elidrissi@kniplokettiko.nl', '0611111112', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(4, 'Maliebaan', '17', NULL, '3581CC', 'Utrecht', 'lisa.vandijk@kniplokettiko.nl', '0611111113', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(5, 'Balijelaan', '63', NULL, '3521GM', 'Utrecht', 'youssef.benali@kniplokettiko.nl', '0611111114', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(6, 'Nachtegaalstraat', '95', NULL, '3581AE', 'Utrecht', 'noor.bakker@kniplokettiko.nl', '0611111115', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(7, 'Bernardlaan', '7', NULL, '3527GA', 'Utrecht', 'kevin.smit@kniplokettiko.nl', '0611111116', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(8, 'Laan van Nieuw-Guinea', '141', NULL, '3531JE', 'Utrecht', 'aylin.demir@kniplokettiko.nl', '0611111117', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(9, 'Marnixlaan', '205', NULL, '3552HD', 'Utrecht', 'tom.verhoeven@kniplokettiko.nl', '0611111118', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(10, 'Haroekoeplein', '29', NULL, '3531WK', 'Utrecht', 'romy.jacobs@kniplokettiko.nl', '0611111119', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(11, 'Oudegracht', '88', 'A', '3512AB', 'Utrecht', 'piet.van.loenen@gmail.com', '+31 6 1234 61 71', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(12, 'Biltstraat', '44', NULL, '3572BC', 'Utrecht', 'jan.jansen@outlook.com', '+31 6 1234 61 72', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(13, 'Merelstraat', '12', NULL, '3514CN', 'Utrecht', 'saskia.deboer@yahoo.com', '+31 6 1234 61 73', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(14, 'Winkel van Sinkelstraat', '4', NULL, '3511KV', 'Utrecht', 'ahmed.mansouri@icloud.com', '+31 6 1234 61 74', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(15, 'Adelaarstraat', '50', NULL, '3514CH', 'Utrecht', 'marieke.vandenberg@ziggo.nl', '+31 6 1234 61 75', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(16, 'Vleutenseweg', '73', NULL, '3532HA', 'Utrecht', 'daan.visser@live.nl', '+31 6 1234 61 76', 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30');
+-- -------------------------------------------------------
+-- Tabel: behandelingen
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `behandelingen` (
+    `id`            INT UNSIGNED   NOT NULL AUTO_INCREMENT,
+    `naam`          VARCHAR(150)   NOT NULL,
+    `prijs`         DECIMAL(8,2)   NOT NULL,
+    `duur_minuten`  INT UNSIGNED   NOT NULL,
+    `beschrijving`  TEXT           DEFAULT NULL,
+    `aangemaakt_op` DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `gewijzigd_op`  DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_naam` (`naam`)
+) ENGINE=InnoDB;
 
--- KlantPerContact
-INSERT INTO KlantPerContact (Id, KlantId, ContactId, IsActief, Opmerking, DatumAangemaakt, DatumGewijzigd) VALUES
-(1, 1, 11, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(2, 2, 12, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(3, 3, 13, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(4, 4, 14, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(5, 5, 15, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(6, 6, 16, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30');
+-- -------------------------------------------------------
+-- Tabel: producten
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `producten` (
+    `id`            INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    `productnaam`   VARCHAR(150)  NOT NULL,
+    `categorie`     VARCHAR(100)  NOT NULL,
+    `ean_code`      VARCHAR(13)   NOT NULL,
+    `voorraad`      INT UNSIGNED  NOT NULL DEFAULT 0,
+    `leverancier_id` INT UNSIGNED NOT NULL,
+    `prijs`         DECIMAL(8,2)  NOT NULL DEFAULT 0.00,
+    `aangemaakt_op` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `gewijzigd_op`  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_productnaam` (`productnaam`),
+    UNIQUE KEY `uk_ean_code` (`ean_code`),
+    KEY `fk_producten_leverancier` (`leverancier_id`),
+    CONSTRAINT `fk_producten_leverancier`
+        FOREIGN KEY (`leverancier_id`)
+        REFERENCES `leveranciers` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
 
--- MedewerkerPerContact
-INSERT INTO MedewerkerPerContact (Id, MedewerkerId, ContactId, IsActief, Opmerking, DatumAangemaakt, DatumGewijzigd) VALUES
-(1, 1, 1, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(2, 2, 2, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(3, 3, 3, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(4, 4, 4, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(5, 5, 5, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(6, 6, 6, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(7, 7, 7, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(8, 8, 8, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(9, 9, 9, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30'),
-(10, 10, 10, 1, NULL, '2026-07-02 09:09:30', '2026-07-02 09:09:30');
+-- -------------------------------------------------------
+-- Tabel: behandeling_producten
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `behandeling_producten` (
+    `behandeling_id`  INT UNSIGNED  NOT NULL,
+    `product_id`      INT UNSIGNED  NOT NULL,
+    `aantal_benodigd` DECIMAL(8,3)  NOT NULL,
+    PRIMARY KEY (`behandeling_id`, `product_id`),
+    CONSTRAINT `fk_bp_behandeling`
+        FOREIGN KEY (`behandeling_id`)
+        REFERENCES `behandelingen` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT `fk_bp_product`
+        FOREIGN KEY (`product_id`)
+        REFERENCES `producten` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
 
--- Reset auto-increment to correct values (optional but recommended)
-ALTER TABLE users AUTO_INCREMENT = 18;
-ALTER TABLE Klant AUTO_INCREMENT = 7;
-ALTER TABLE Medewerker AUTO_INCREMENT = 11;
-ALTER TABLE Contact AUTO_INCREMENT = 17;
-ALTER TABLE KlantPerContact AUTO_INCREMENT = 7;
-ALTER TABLE MedewerkerPerContact AUTO_INCREMENT = 11;
+-- -------------------------------------------------------
+-- Tabel: afspraken
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `afspraken` (
+    `id`             INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `klant_id`       INT UNSIGNED NOT NULL,
+    `medewerker_id`  INT UNSIGNED NOT NULL,
+    `behandeling_id` INT UNSIGNED NOT NULL,
+    `datum`          DATE         NOT NULL,
+    `starttijd`      TIME         NOT NULL,
+    `eindtijd`       TIME         NOT NULL,
+    `status`         VARCHAR(20)  NOT NULL DEFAULT 'gepland',
+    `aangemaakt_op`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `gewijzigd_op`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `fk_afspraak_klant`       (`klant_id`),
+    KEY `fk_afspraak_medewerker`  (`medewerker_id`),
+    KEY `fk_afspraak_behandeling` (`behandeling_id`),
+    KEY `idx_datum_starttijd`     (`datum`, `starttijd`),
+    CONSTRAINT `fk_afspraak_klant`
+        FOREIGN KEY (`klant_id`)       REFERENCES `klanten` (`id`)       ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `fk_afspraak_medewerker`
+        FOREIGN KEY (`medewerker_id`)  REFERENCES `medewerkers` (`id`)   ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `fk_afspraak_behandeling`
+        FOREIGN KEY (`behandeling_id`) REFERENCES `behandelingen` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB;
 
--- ============================================================
--- STORED PROCEDURES
--- ============================================================
+-- -------------------------------------------------------
+-- Tabel: bestellingen
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bestellingen` (
+    `id`                   INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `klant_id`             INT UNSIGNED NOT NULL,
+    `orderdatum`           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `verwachte_leverdatum` DATE         DEFAULT NULL,
+    `status`               VARCHAR(30)  NOT NULL DEFAULT 'in behandeling',
+    `aangemaakt_op`        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `gewijzigd_op`         DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `fk_bestelling_klant` (`klant_id`),
+    CONSTRAINT `fk_bestelling_klant`
+        FOREIGN KEY (`klant_id`)
+        REFERENCES `klanten` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- Stored Procedure: sp_GetKlantenMetContactGegevens
--- Beschrijving: Haalt klanten op met contactgegevens, optioneel gefilterd op postcode
--- Parameters: 
---   - p_postcode: VARCHAR(10) - Optionele postcode filter (NULL voor alle klanten)
---   - p_limit: INT - Aantal records per pagina
---   - p_offset: INT - Offset voor paginering
--- ------------------------------------------------------------
-DELIMITER $$
-CREATE PROCEDURE sp_GetKlantenMetContactGegevens(
-    IN p_postcode VARCHAR(10),
-    IN p_limit INT,
-    IN p_offset INT
-)
-BEGIN
-    SELECT 
-        k.Id,
-        k.Voornaam,
-        k.Tussenvoegsel,
-        k.Achternaam,
-        k.Relatienummer,
-        k.Bijzonderheden,
-        c.Straatnaam,
-        c.Huisnummer,
-        c.Toevoeging,
-        c.Postcode,
-        c.Plaats,
-        c.Email AS ContactEmail,
-        c.Mobiel,
-        u.email AS AccountEmail,
-        k.DatumAangemaakt,
-        k.DatumGewijzigd
-    FROM Klant k
-    INNER JOIN users u ON u.id = k.UserId
-    LEFT JOIN KlantPerContact kpc ON kpc.KlantId = k.Id AND kpc.IsActief = 1
-    LEFT JOIN Contact c ON c.Id = kpc.ContactId AND c.IsActief = 1
-    WHERE k.IsActief = 1
-        AND (p_postcode IS NULL OR REPLACE(c.Postcode, ' ', '') LIKE CONCAT(REPLACE(p_postcode, ' ', ''), '%'))
-    ORDER BY k.Achternaam, k.Voornaam
-    LIMIT p_limit OFFSET p_offset;
-END$$
-DELIMITER ;
+-- -------------------------------------------------------
+-- Tabel: bestelregels
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `bestelregels` (
+    `id`             INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    `bestelling_id`  INT UNSIGNED  NOT NULL,
+    `product_id`     INT UNSIGNED  NOT NULL,
+    `aantal`         INT UNSIGNED  NOT NULL,
+    `prijs_per_stuk` DECIMAL(8,2)  NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_bestelling_product` (`bestelling_id`, `product_id`),
+    CONSTRAINT `fk_br_bestelling`
+        FOREIGN KEY (`bestelling_id`)
+        REFERENCES `bestellingen` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT `fk_br_product`
+        FOREIGN KEY (`product_id`)
+        REFERENCES `producten` (`id`)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
 
--- ------------------------------------------------------------
--- Stored Procedure: sp_CountKlantenMetContactGegevens
--- Beschrijving: Telt het totaal aantal klanten, optioneel gefilterd op postcode
--- Parameters: 
---   - p_postcode: VARCHAR(10) - Optionele postcode filter
--- ------------------------------------------------------------
-DELIMITER $$
-CREATE PROCEDURE sp_CountKlantenMetContactGegevens(
-    IN p_postcode VARCHAR(10)
-)
-BEGIN
-    SELECT COUNT(DISTINCT k.Id) AS TotaalKlanten
-    FROM Klant k
-    LEFT JOIN KlantPerContact kpc ON kpc.KlantId = k.Id AND kpc.IsActief = 1
-    LEFT JOIN Contact c ON c.Id = kpc.ContactId AND c.IsActief = 1
-    WHERE k.IsActief = 1
-        AND (p_postcode IS NULL OR REPLACE(c.Postcode, ' ', '') LIKE CONCAT(REPLACE(p_postcode, ' ', ''), '%'));
-END$$
-DELIMITER ;
+-- =====================================================
+-- TESTDATA
+-- =====================================================
+-- Allergenen (EU-erkende + kappersgerelateerde stoffen)
+INSERT INTO `allergenen` (`id`, `naam`) VALUES
+    (1,  'Gluten'),
+    (2,  'Schaaldieren'),
+    (3,  'Eieren'),
+    (4,  'Vis'),
+    (5,  'Pinda'),
+    (6,  'Soja'),
+    (7,  'Melk / Lactose'),
+    (8,  'Noten'),
+    (9,  'Selderij'),
+    (10, 'Mosterd'),
+    (11, 'Sesam'),
+    (12, 'Sulfiet / Zwaveldioxide'),
+    (13, 'Lupine'),
+    (14, 'Weekdieren'),
+    (15, 'Ammoniak'),
+    (16, 'Waterstofperoxide'),
+    (17, 'Parafenylenediamine (PPD)'),
+    (18, 'Resorcinol'),
+    (19, 'Parfum / Geurstoffen'),
+    (20, 'Propyleenglycol'),
+    (21, 'Formaldehyde'),
+    (22, 'Methylisothiazolinon'),
+    (23, 'Lanoline'),
+    (24, 'Latex'),
+    (25, 'Nickel');
 
--- ------------------------------------------------------------
--- Stored Procedure: sp_UpdateMedewerkerGegevens
--- Beschrijving: Wijzigt medewerkergegevens en bijbehorende contactgegevens
--- Validatie: minderjarige (<18) mag geen specialisatie 'Permanent' krijgen
--- Parameters: alle medewerker- en contactvelden + OUT success/message
--- ------------------------------------------------------------
-DELIMITER $$
-CREATE PROCEDURE sp_UpdateMedewerkerGegevens(
-    IN  p_medewerker_id  INT,
-    IN  p_voornaam       VARCHAR(100),
-    IN  p_tussenvoegsel  VARCHAR(50),
-    IN  p_achternaam     VARCHAR(100),
-    IN  p_specialisatie  VARCHAR(100),
-    IN  p_geboortedatum  DATE,
-    IN  p_contact_email  VARCHAR(255),
-    IN  p_straatnaam     VARCHAR(255),
-    IN  p_huisnummer     VARCHAR(20),
-    IN  p_toevoeging     VARCHAR(20),
-    IN  p_postcode       VARCHAR(10),
-    IN  p_plaats         VARCHAR(100),
-    IN  p_mobiel         VARCHAR(20),
-    IN  p_opmerking      VARCHAR(255),
-    OUT p_success        BOOLEAN,
-    OUT p_message        VARCHAR(500)
-)
-BEGIN
-    DECLARE v_contact_id INT;
-    DECLARE v_leeftijd   INT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        SET p_success = FALSE;
-        SET p_message = 'Database fout bij het wijzigen van medewerkergegevens';
-        ROLLBACK;
-    END;
+-- Rollen
+INSERT INTO `rollen` (`id`, `naam`) VALUES
+    (1, 'eigenaar'),
+    (2, 'medewerker'),
+    (3, 'klant');
 
-    START TRANSACTION;
+-- Gebruikers
+-- Wachtwoorden (plain):
+--   lisa@kniploket.nl        -> Admin123
+--   erik@kniploket.nl        -> Medew123
+--   sophie@example.com       -> Klant123
+--   jan.devries@example.com  -> Klant123
+--   fatima.yilmaz@example.com-> Klant123
+--   marco.smit@example.com   -> Klant123
+--   anna.berg@example.com    -> Klant123
+--   thomas.kl@example.com    -> Klant123
+-- Hashes gegenereerd met password_hash('...', PASSWORD_BCRYPT, ['cost' => 12])
+INSERT INTO `gebruikers` (`id`, `naam`, `email`, `wachtwoord`, `rol_id`, `is_actief`) VALUES
+    (1, 'Lisa Jansen',       'lisa@kniploket.nl',          '$2y$12$zFNJcGSjm.AN4w0aQ4OwkeIhAfr4yReveZrFSwBmsuEXDMqY58kB.', 1, 1),
+    (2, 'Erik de Vries',     'erik@kniploket.nl',          '$2y$12$cwQT7/J7Uybt2PxxYXYz8OpgMviy3MUk2RaJgSmy6YWG7d1XPemBq', 2, 1),
+    (3, 'Sophie Bakker',     'sophie@example.com',         '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 1),
+    (4, 'Jan de Vries',      'jan.devries@example.com',    '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 1),
+    (5, 'Fatima Yilmaz',     'fatima.yilmaz@example.com',  '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 1),
+    (6, 'Marco Smit',        'marco.smit@example.com',     '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 1),
+    (7, 'Anna van den Berg', 'anna.berg@example.com',      '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 1),
+    (8, 'Thomas Kleijn',     'thomas.kl@example.com',      '$2y$12$EhJMK8OXaWX8Ni4zs62y2O4O5L.glSWwzrFxDabtj7YL2NZvCbryC', 3, 0);
 
-    -- Bereken leeftijd op basis van geboortedatum
-    SET v_leeftijd = TIMESTAMPDIFF(YEAR, p_geboortedatum, CURDATE());
+-- Klanten (allergieen kolom is verwijderd — allergenen staan in klant_allergenen)
+INSERT INTO `klanten` (`id`, `gebruiker_id`, `adres`, `telefoonnummer`, `wensen`) VALUES
+    (1, 3, 'Hoofdstraat 12, 1234 AB Amsterdam',     '0612345678', 'Houdt van natuurlijke producten'),
+    (2, 4, 'Kerkstraat 45, 2000 BC Rotterdam',       '0687654321', 'Kort knippen aan de zijkanten'),
+    (3, 5, 'Dorpsweg 7, 3500 CD Utrecht',            '+31698765432','Voorkeur voor ammoniakvrije verf'),
+    (4, 6, 'Lindelaan 3, 4000 DE Den Haag',          '020-1234567', 'Wil graag tips voor haar thuis'),
+    (5, 7, 'Molenlaan 99, 5000 EF Eindhoven',        '0651234567',  'Altijd blowdry na de behandeling'),
+    (6, 8, 'Parkweg 22, 6000 FG Maastricht',         '043-9876543', NULL);
 
-    -- Validatie: minderjarige mag geen specialisatie 'Permanent' krijgen
-    IF v_leeftijd < 18 AND p_specialisatie = 'Permanent' THEN
-        SET p_success = FALSE;
-        SET p_message = 'Minderjarige medewerkers mogen geen specialisatie Permanent toegewezen krijgen vanwege het werken met gevaarlijke stoffen en chemicaliën.';
-        ROLLBACK;
-    ELSE
-        -- Haal ContactId op voor deze medewerker
-        SELECT c.Id INTO v_contact_id
-        FROM Contact c
-        INNER JOIN MedewerkerPerContact mpc ON mpc.ContactId = c.Id
-        WHERE mpc.MedewerkerId = p_medewerker_id AND mpc.IsActief = 1 AND c.IsActief = 1
-        LIMIT 1;
+-- Klant allergenen (koppeltabel)
+-- Sophie: ammoniak + parfum
+INSERT INTO `klant_allergenen` (`klant_id`, `allergeen_id`) VALUES
+    (1, 15), -- Ammoniak
+    (1, 19); -- Parfum / Geurstoffen
+-- Jan: geen
+-- Fatima: PPD + resorcinol
+INSERT INTO `klant_allergenen` (`klant_id`, `allergeen_id`) VALUES
+    (3, 17), -- PPD
+    (3, 18); -- Resorcinol
+-- Marco: latex + nickel
+INSERT INTO `klant_allergenen` (`klant_id`, `allergeen_id`) VALUES
+    (4, 24), -- Latex
+    (4, 25); -- Nickel
+-- Anna: gluten + melk (cosmetica-ingrediënten)
+INSERT INTO `klant_allergenen` (`klant_id`, `allergeen_id`) VALUES
+    (5, 1),  -- Gluten
+    (5, 7);  -- Melk / Lactose
 
-        -- Update Medewerker
-        UPDATE Medewerker
-        SET Voornaam      = p_voornaam,
-            Tussenvoegsel = p_tussenvoegsel,
-            Achternaam    = p_achternaam,
-            Specialisatie = p_specialisatie,
-            Geboortedatum = p_geboortedatum,
-            Opmerking     = p_opmerking,
-            DatumGewijzigd = CURRENT_TIMESTAMP(6)
-        WHERE Id = p_medewerker_id;
+-- Medewerkers
+INSERT INTO `medewerkers` (`id`, `gebruiker_id`) VALUES
+    (1, 1),
+    (2, 2);
 
-        -- Update Contact indien gevonden
-        IF v_contact_id IS NOT NULL THEN
-            UPDATE Contact
-            SET Email          = p_contact_email,
-                Straatnaam     = p_straatnaam,
-                Huisnummer     = p_huisnummer,
-                Toevoeging     = p_toevoeging,
-                Postcode       = p_postcode,
-                Plaats         = p_plaats,
-                Mobiel         = p_mobiel,
-                DatumGewijzigd = CURRENT_TIMESTAMP(6)
-            WHERE Id = v_contact_id;
-        END IF;
+-- Specialisaties
+INSERT INTO `specialisaties` (`id`, `naam`) VALUES
+    (1, 'knippen'), (2, 'kleuren'), (3, 'stylen'), (4, 'extensions'), (5, 'haarverzorging');
 
-        SET p_success = TRUE;
-        SET p_message = 'Medewerkergegevens succesvol bijgewerkt';
-        COMMIT;
-    END IF;
-END$$
-DELIMITER ;
+-- Medewerker specialisaties
+INSERT INTO `medewerker_specialisatie` (`medewerker_id`, `specialisatie_id`) VALUES
+    (1, 1), (1, 2), (1, 4), (2, 3), (2, 5);
 
--- ------------------------------------------------------------
--- Stored Procedure: sp_GetMedewerkersMetContactGegevens
--- Beschrijving: Haalt medewerkers op met contactgegevens, optioneel gefilterd op specialisatie
--- Parameters: 
---   - p_specialisatie: VARCHAR(100) - Optionele specialisatie filter (NULL voor alle medewerkers)
---   - p_limit: INT - Aantal records per pagina
---   - p_offset: INT - Offset voor paginering
--- ------------------------------------------------------------
-DELIMITER $$
-CREATE PROCEDURE sp_GetMedewerkersMetContactGegevens(
-    IN p_specialisatie VARCHAR(100),
-    IN p_limit INT,
-    IN p_offset INT
-)
-BEGIN
-    SELECT 
-        m.Id,
-        m.Voornaam,
-        m.Tussenvoegsel,
-        m.Achternaam,
-        m.Specialisatie,
-        m.Geboortedatum,
-        c.Straatnaam,
-        c.Huisnummer,
-        c.Toevoeging,
-        c.Postcode,
-        c.Plaats,
-        c.Email AS ContactEmail,
-        c.Mobiel,
-        u.email AS AccountEmail,
-        m.DatumAangemaakt,
-        m.DatumGewijzigd
-    FROM Medewerker m
-    INNER JOIN users u ON u.id = m.UserId
-    LEFT JOIN MedewerkerPerContact mpc ON mpc.MedewerkerId = m.Id AND mpc.IsActief = 1
-    LEFT JOIN Contact c ON c.Id = mpc.ContactId AND c.IsActief = 1
-    WHERE m.IsActief = 1
-        AND (p_specialisatie IS NULL OR p_specialisatie = '' OR m.Specialisatie = p_specialisatie)
-    ORDER BY m.Achternaam, m.Voornaam
-    LIMIT p_limit OFFSET p_offset;
-END$$
-DELIMITER ;
+-- Werktijden
+INSERT INTO `werktijden` (`medewerker_id`, `dag_van_week`, `starttijd`, `eindtijd`) VALUES
+    (1,1,'09:00','17:00'),(1,2,'09:00','17:00'),(1,3,'09:00','17:00'),(1,4,'09:00','17:00'),(1,5,'09:00','17:00'),
+    (2,1,'09:00','17:00'),(2,2,'09:00','17:00'),(2,3,'09:00','17:00'),(2,4,'09:00','17:00'),(2,5,'09:00','17:00');
 
--- ------------------------------------------------------------
--- Stored Procedure: sp_CountMedewerkersMetContactGegevens
--- Beschrijving: Telt het totaal aantal medewerkers, optioneel gefilterd op specialisatie
--- Parameters: 
---   - p_specialisatie: VARCHAR(100) - Optionele specialisatie filter
--- ------------------------------------------------------------
-DELIMITER $$
-CREATE PROCEDURE sp_CountMedewerkersMetContactGegevens(
-    IN p_specialisatie VARCHAR(100)
-)
-BEGIN
-    SELECT COUNT(DISTINCT m.Id) AS TotaalMedewerkers
-    FROM Medewerker m
-    WHERE m.IsActief = 1
-        AND (p_specialisatie IS NULL OR p_specialisatie = '' OR m.Specialisatie = p_specialisatie);
-END$$
-DELIMITER ;
+-- Leveranciers
+INSERT INTO `leveranciers` (`id`, `naam`) VALUES
+    (1,'HairPro Supplies'),(2,'StyleMax BV'),(3,'BeautyHouse'),(4,'ColorWorld');
 
--- ------------------------------------------------------------
--- Stored Procedure: sp_GetUniekeSpecialisaties
--- Beschrijving: Haalt alle unieke specialisaties op van actieve medewerkers
--- ------------------------------------------------------------
-DELIMITER $$
-CREATE PROCEDURE sp_GetUniekeSpecialisaties()
-BEGIN
-    SELECT DISTINCT Specialisatie
-    FROM Medewerker
-    WHERE IsActief = 1
-    ORDER BY Specialisatie;
-END$$
-DELIMITER ;
+-- Behandelingen
+INSERT INTO `behandelingen` (`id`, `naam`, `prijs`, `duur_minuten`, `beschrijving`) VALUES
+    (1,'Knippen dames',35.00,60,'Inclusief wassen en föhnen'),
+    (2,'Knippen heren',25.00,30,'Knippen heren'),
+    (3,'Kleuren',55.00,90,'Inclusief spoeling en styling'),
+    (4,'Stylen',30.00,45,'Föhnen en stylen naar wens'),
+    (5,'Extensions',120.00,120,'Inclusief haar en plaatsing');
 
--- ============================================================
--- TECHNICAL LOG TABLE
--- ============================================================
+-- Producten
+INSERT INTO `producten` (`id`,`productnaam`,`categorie`,`ean_code`,`voorraad`,`leverancier_id`,`prijs`) VALUES
+    (1,'Volume Shampoo','shampoo','8712345678900',15,1,12.50),
+    (2,'Hydraterende Conditioner','conditioner','8712345678901',8,1,14.95),
+    (3,'Styling Gel Strong','styling','8712345678902',2,2,9.99),
+    (4,'Kleurbeschermer Spray','verzorging','8712345678903',20,3,18.50),
+    (5,'Permanente Verf 5.0','verf','8712345678904',0,4,22.95);
 
-CREATE TABLE IF NOT EXISTS TechnischeLog (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    LogType ENUM('INFO', 'WARNING', 'ERROR', 'DEBUG') NOT NULL DEFAULT 'INFO',
-    Module VARCHAR(100) NOT NULL COMMENT 'Naam van de module/class/functie',
-    Actie VARCHAR(255) NOT NULL COMMENT 'Beschrijving van de actie',
-    Details TEXT NULL COMMENT 'Gedetailleerde informatie, bijv. JSON data',
-    UserId INT NULL COMMENT 'Optioneel: welke gebruiker voerde de actie uit',
-    IpAdres VARCHAR(45) NULL COMMENT 'IP-adres van de gebruiker',
-    DatumAangemaakt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    INDEX idx_logtype (LogType),
-    INDEX idx_module (Module),
-    INDEX idx_datum (DatumAangemaakt),
-    INDEX idx_userid (UserId),
-    CONSTRAINT fk_technischelog_user FOREIGN KEY (UserId) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB COMMENT='Technische logs voor debugging en audit trail';
+-- Behandeling producten
+INSERT INTO `behandeling_producten` (`behandeling_id`,`product_id`,`aantal_benodigd`) VALUES
+    (1,1,0.010),(1,2,0.010),(2,1,0.005),(3,4,0.050),(3,5,0.100),(4,3,0.020),(5,2,0.030);
 
--- ============================================================
--- Insert sample technical log entries
--- ============================================================
-INSERT INTO TechnischeLog (LogType, Module, Actie, Details, UserId, IpAdres) VALUES
-('INFO', 'KlantController', 'Klant overzicht bekeken', '{"postcode":"3512AB","pagina":1}', 1, '127.0.0.1'),
-('INFO', 'KlantController', 'Klant gewijzigd', '{"klant_id":4,"velden":["contact_email","mobiel"]}', 1, '127.0.0.1'),
-('WARNING', 'KlantController', 'Poging tot wijzigen met bestaand e-mailadres', '{"klant_id":4,"email":"jan.jansen@outlook.com"}', 1, '127.0.0.1'),
-('INFO', 'AuthController', 'Gebruiker ingelogd', '{"email":"lisa@kniploket.nl","rol":"eigenaar"}', 1, '127.0.0.1'),
-('ERROR', 'Database', 'Connectie mislukt', '{"error":"Connection refused","host":"127.0.0.1"}', NULL, '127.0.0.1');
+-- Afspraken
+INSERT INTO `afspraken` (`id`,`klant_id`,`medewerker_id`,`behandeling_id`,`datum`,`starttijd`,`eindtijd`,`status`) VALUES
+    (1,1,1,1,'2026-07-06','09:00','10:00','gepland'),
+    (2,1,1,3,'2026-07-08','11:00','12:30','gepland'),
+    (3,2,2,2,'2026-07-07','10:00','10:30','gepland'),
+    (4,3,1,3,'2026-07-09','13:00','14:30','gepland'),
+    (5,4,2,4,'2026-07-10','14:00','14:45','gepland');
+
+-- Bestellingen
+INSERT INTO `bestellingen` (`id`,`klant_id`,`orderdatum`,`verwachte_leverdatum`,`status`) VALUES
+    (1,1,'2026-07-01 10:00:00','2026-07-05','gereed');
+
+-- Bestelregels
+INSERT INTO `bestelregels` (`id`,`bestelling_id`,`product_id`,`aantal`,`prijs_per_stuk`) VALUES
+    (1,1,1,2,12.50),(2,1,3,1,9.99);
